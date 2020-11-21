@@ -3,9 +3,9 @@
 # ---------------------------------------------------------------------------------------
 base_info:
   title: demodemo
-  author: xxyyzz
+  author: demodemo
   email: lijunshi2015@163.com
-  url: https://ils.xpoet.cn/
+  url: https://astarlight.github.io/
 
 # ---------------------------------------------------------------------------------------
 # Theme style settings
@@ -18,7 +18,7 @@ style:
   favicon: images/favicon.png
 
   # avatar
-  avatar: images/avatar.png
+  avatar: images/icon.jpeg
 
 
 # ---------------------------------------------------------------------------------------
