@@ -2,8 +2,8 @@
 #  Your basic info
 # ---------------------------------------------------------------------------------------
 base_info:
-  title: demodemo
-  author: demodemo
+  title: txos
+  author: txos
   email: lijunshi2015@163.com
   url: https://astarlight.github.io/
 
@@ -28,7 +28,7 @@ menu:
   Home: /
   Archives: /archives
   Categories: /categories
-  #Tags: /tags
+  Tags: /tags
   # Links: /links
   About: /about
   # ...
