@@ -1,7 +1,7 @@
 ---
 title: shell日志数据分析实战
 date: 2020-12-06 11:35:26
-tags: [linux,Shell]
+tags: [linux,Shell]	
 categories: 工具
 ---
 
