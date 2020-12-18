@@ -17,7 +17,7 @@
 
     <script id="hexo-configurations">
     let ILS = window.ILS || {};
-    let CONFIG = {"hostname":"example.com","root":"/","localsearch":{"enable":false,"trigger":"auto","unescape":false,"preload":false},"toc":{"enable":false,"number":true,"expand_all":true},"back2top":{"enable":true}};
+    let CONFIG = {"hostname":"example.com","root":"/","localsearch":{"enable":false,"trigger":"auto","unescape":false,"preload":false},"toc":{"enable":true,"number":true,"expand_all":true},"back2top":{"enable":true}};
   </script>
 <meta name="generator" content="Hexo 5.2.0"></head>
 
@@ -228,6 +228,8 @@
 <p><img src="2.png" alt="image"></p>
 <p>为了加速完成内存映射，操作系统会将TLB（Translation Lookaside Buffer，转译后备缓冲器）作为MMU 中页表的高速缓存，进而提高 CPU 的内存访问性能。当CPU给MMU传新虚拟地址之后，MMU先去问TLB那边有没有，如果有就直接拿到物理地址发到总线给内存，没有则再进行MMU的地址转换操作。</p>
 <p><img src="5.png" alt="image"></p>
+<p>地址翻译的过程：</p>
+<p><img src="10.png" alt="image"></p>
 <p>考虑一个问题：虚拟地址在TLB和Page Table都没有找到对应的物理页帧时会发生什么？会发生<strong>缺页异常Page Fault</strong>，它是一个由硬件中断触发的可以由软件逻辑纠正的错误。假如目标内存页在物理内存中没有对应的页帧或者存在但无对应权限，CPU 就无法获取数据，这种情况下CPU就会报告一个缺页错误。一般的缺页错误有以下三种：</p>
 <p><img src="6.png" alt="image"></p>
 <p>当进程向系统申请分配内存时，操作系统采取的是<strong>惰性分配</strong>的策略，即系统会快速回应需要内存的进程表示你的申请是有效的，但此时并不会为该进程真正分配出内存空间，而是在该进程真正使用到这段内存时才真正分配，这就是惰性分配思想。操作系统采取惰性分配的好处个人认为如下：</p>
@@ -271,6 +273,17 @@
 
         
             <div class="article-nav">
+                
+                    <div class="article-prev">
+                        <a class="prev btn"
+                           rel="prev"
+                           href="/2020/12/18/%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/"
+                        >
+                            <i class="fa fa-chevron-left"></i>
+                            <span class="post-nav-title-item">网络性能优化策略</span>
+                            <span class="post-nav-item">Prev posts</span>
+                        </a>
+                    </div>
                 
                 
                     <div class="article-next">
@@ -336,6 +349,10 @@
         
 
         <!-- TOC aside toggle -->
+        
+            <li class="tools-item page-aside-toggle">
+                <i class="fa fa-outdent"></i>
+            </li>
         
 
     </ul>
@@ -418,6 +435,11 @@
 <script src="/js/code-copy.js"></script>
 
     
+
+    
+        
+<script src="/js/libs/anime.min.js"></script>
+<script src="/js/toc.js"></script>
 
     
 

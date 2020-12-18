@@ -244,3 +244,41 @@
     display: none;
   }
 }
+.article-toc-container {
+  position: fixed;
+  top: 112px;
+  left: 30px;
+}
+@media (max-width: 760px) {
+  .article-toc-container {
+    display: none;
+  }
+}
+.article-toc-container .article-toc {
+  max-width: 188px;
+  max-height: 600px;
+  overflow-y: auto;
+  background: var(--background-color);
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 0 2.8px var(--border-color);
+  transition: all 0.3s ease;
+}
+.article-toc-container .article-toc:hover {
+  transition: all 0.3s ease;
+}
+@media (max-width: 760px) {
+  .article-toc-container .article-toc {
+    padding: 18px;
+    border-radius: 3px;
+  }
+}
+@media (max-width: 480px) {
+  .article-toc-container .article-toc {
+    padding: 16px;
+    border-radius: 2px;
+  }
+}
+.article-toc-container-shrink {
+  top: 96px !important;
+}
