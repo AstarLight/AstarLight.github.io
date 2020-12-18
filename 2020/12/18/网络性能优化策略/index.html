@@ -205,7 +205,7 @@
         <div class="article-content markdown-body">
             <p>[toc]</p>
 <p>Linux网络性能优化实际优化的是Linux内核或者系统调用的几个参数，我们可以从应用程序、套接字、传输层、网络层以及链路层等几个角度，分别来看网络性能优化的基本思路。</p>
-<p><img src="https://note.youdao.com/yws/public/resource/a8d91bf969f7b8a39318c60e5d3cfeb6/0500C86A26A146D399AFB49F2DE02E63?ynotemdtimestamp=1608312663994" alt="image"></p>
+<p><img src="11.png" alt="image"></p>
 <h2 id="网络性能指标"><a href="#网络性能指标" class="headerlink" title="网络性能指标"></a>网络性能指标</h2><ul>
 <li>带宽：带宽，表示链路的最大传输速率，单位通常为 b/s （比特/秒）。</li>
 <li>吞吐量：表示单位时间内成功传输的数据量，单位通常为 b/s（比特/秒）或者 B/s（字节/秒）。吞吐量受带宽限制，而吞吐量/带宽，也就是该网络的使用率。</li>
@@ -213,7 +213,7 @@
 <li>PPS：是 Packet Per Second（包/秒）的缩写，表示以网络包为单位的传输速率。PPS 通常用来评估网络的转发能力，比如硬件交换机，通常可以达到线性转发（即PPS可以达到或者接近理论最大值）。而基于 Linux 服务器的转发，则容易受网络包大小的影响。</li>
 </ul>
 <p>除了这些指标，网络的可用性（网络能否正常通信）、并发连接数（TCP连接数量）、丢包率（丢包百分比）、重传率（重新传输的网络包比例）等也是常用的性能指标。</p>
-<h2 id="网络收发包流程"><a href="#网络收发包流程" class="headerlink" title="网络收发包流程"></a>网络收发包流程</h2><p>这里介绍进程收到网络数据的整个流程：<br><img src="https://note.youdao.com/yws/public/resource/a8d91bf969f7b8a39318c60e5d3cfeb6/66AE661B669D4355BC8869281848580B?ynotemdtimestamp=1608312663994" alt="image"></p>
+<h2 id="网络收发包流程"><a href="#网络收发包流程" class="headerlink" title="网络收发包流程"></a>网络收发包流程</h2><p>这里介绍进程收到网络数据的整个流程：<br><img src="12.png" alt="image"></p>
 <ol>
 <li>一个网络帧到达网卡，网卡会通过DMA方式，<strong>把这个包放在接收队列里（Tx Ring buff）</strong>，然后通过硬中断，告诉网卡中断程序收到了网络包；</li>
 <li>网卡中断程序会为该网络帧分配内核数据结构sk_buff(socket buffer)，再通过软中断告知内核收到了网络帧；</li>
@@ -223,7 +223,7 @@
 <li>传输层取出 TCP 头或者 UDP 头后，根据 &lt; 源 IP、源端口、目的 IP、目的端口 &gt; 四元组作为标识，找出对应的 Socket，<strong>并把数据拷贝到 Socket的接收缓存中，也就是TCP接收窗口</strong>。</li>
 <li>最后，应用程序就可以使用 Socket read接口，程序会切换到内核区,并且会把 socket 接收缓冲区中的数据拷贝到用户区，拷贝后的数据会从 socket 缓冲区中移除。</li>
 </ol>
-<p><img src="https://note.youdao.com/yws/public/resource/a8d91bf969f7b8a39318c60e5d3cfeb6/BCB399126338458A81B55BD6880F076D?ynotemdtimestamp=1608312663994" alt="image"></p>
+<p><img src="13.png" alt="image"></p>
 <p>上面的收包流程中深色标记了数据的存储位置，收到的数据一开始存储于内核专用的缓冲区，接收队列(ring buff)存的是指向这片区域的指针，后面数据被拷贝到sk_buff缓冲区（这个sk_ buff 形成的链表，就是常说的 socket 发送缓冲区），最后被拷贝到进程使用。</p>
 <p>只在两种情况下创建 sk_ buff：</p>
 <ol>
@@ -236,10 +236,10 @@
 <li>sk_buff 与 NIC 之间的拷贝。</li>
 </ol>
 <h2 id="MTU大小（影响时延）"><a href="#MTU大小（影响时延）" class="headerlink" title="MTU大小（影响时延）"></a>MTU大小（影响时延）</h2><p>物理链路中并不能传输任意大小的数据包。网络接口配置的最大传输单元（MTU），就规定了最大的 IP 包大小。在我们最常用的以太网中，MTU 默认值是 1500（这也是 Linux 的默认值）。一旦网络包超过 MTU 的大小，就会在网络层分片，以保证分片后的 IP 包不大于 MTU 值。显然，MTU 越大，需要的分包也就越少，自然，网络吞吐能力就越好。因此我们可以根据 MTU 大小，调整发送的 数据包的大小，减少或者避免分片的发生。下图就表示了应用层的要发送的数据超过MTU后，会被分为多个包发送。</p>
-<p><img src="https://note.youdao.com/yws/res/54333/4ABB71EFBB01460991797FBB1116A92E" alt="image"></p>
+<p><img src="14.png" alt="image"></p>
 <h2 id="TCP优化"><a href="#TCP优化" class="headerlink" title="TCP优化"></a>TCP优化</h2><p>网络性能优化很大一部分就是在优化TCP的系统参数，因为操作系统一般设定的一些网络参数都较为保守，因为这些参数设为保守值那系统能稳定运行在各个环境上的能力就更强。但线上服务器都有自己的特殊处境，一个万金油的值并不能满足服务器的性能要求。一个典型的例子就是，局域网内网络环境都很好，因此没有必要严格遵循TCP那套拥塞控制策略，而是应想方法尽可能地提升传输性能。</p>
 <p>先来一张TCP三次握手四次挥手的神图镇场。</p>
-<p><img src="https://note.youdao.com/src/EB1E8189F7CD47459330FC68004E67FF" alt="image"></p>
+<p><img src="3.png" alt="image"></p>
 <h3 id="1-TIME-WAIT过多（影响并发量，吞吐量）"><a href="#1-TIME-WAIT过多（影响并发量，吞吐量）" class="headerlink" title="1.TIME_WAIT过多（影响并发量，吞吐量）"></a>1.TIME_WAIT过多（影响并发量，吞吐量）</h3><p>在请求数比较大的场景下，你可能会看到大量处于 TIME_WAIT 状态的连接，它们会占用大量内存和端口资源。这时，我们可以优化与 TIME_WAIT 状态相关的内核选项，比如采取下面几种措施。</p>
 <ul>
 <li>增大处于 TIME_WAIT 状态的连接数量 net.ipv4.tcp_max_tw_buckets ，并增大连接跟踪表的大小 net.netfilter.nf_conntrack_max。</li>
@@ -292,7 +292,7 @@
 <li>缩短发送 Keepalive 探测包的间隔时间 net.ipv4.tcp_keepalive_intvl；</li>
 <li>减少 Keepalive 探测失败后，一直到通知应用程序前的重试次数 net.ipv4.tcp_keepalive_probes。</li>
 </ul>
-<p><img src="https://note.youdao.com/yws/res/53996/538D93C676C8452DB903624B9134C9EB" alt="image"></p>
+<p><img src="15.png" alt="image"></p>
 <h3 id="5-Nagle算法和延迟ACK导致的网络延时（影响时延）"><a href="#5-Nagle算法和延迟ACK导致的网络延时（影响时延）" class="headerlink" title="5.Nagle算法和延迟ACK导致的网络延时（影响时延）"></a>5.Nagle算法和延迟ACK导致的网络延时（影响时延）</h3><p>Nagle算法和delay ack机制是减少发送端和接收端包量的两个机制，可以有效减少网络包量，避免拥塞。但是，在特定场景下，Nagle算法要求网络中只有一个未确认的包， 而delay ack机制需要等待更多的数据包， 再发送ACK回包， 导致发送和接收端等待对方发送数据， 造成死锁， 只有当delay ack超时或者发送方等待超时后才能解开死锁，进而导致应用侧对外的延时高。 </p>
 <p>Nagle算法主要是避免发送小的数据包，<strong>要求TCP连接上最多只能有一个未被确认的小分组，在该分组的确认到达之前不能发送其他的小分组</strong>。相反，TCP收集这些少量的小分组，并在接收方的确认到来时以一个分组的方式发出去。</p>
 <p>考虑发送一个字节的的情景，每次发送一个字节的有用数据，就会产生41个字节长的分组，20个字节的IP Header 和 20个字节的TCP Header，这就导致了1个字节的有用信息要浪费掉40个字节的头部信息，这是一笔巨大的字节开销，而且这种Small packet在广域网上会增加拥塞的出现。<strong>因此Nagle算法是用于缓解网络拥塞的优化手段</strong>。该算法的优越之处在于它是自适应的，确认到达的越快，数据也就发送的越快。</p>
@@ -306,14 +306,14 @@
 <p>TCP_NODELAY：该参数设置后就是关闭了Nagle算法，即发送数据时不管包的大小，一律立即发送。</p>
 <p>TCP_QUAICLACK: 该参数设置后表示关闭延迟ack, 表示接收到数据之后立即回复ACK。</p>
 <p>观察下面这个案例，左侧是客户端，右侧是服务端，从下图可以看出，前面三次握手，以及第一次 HTTP 请求和响应还是挺快的，但第二次 HTTP 请求就比较慢了，特别是客户端在收到服务器第一个分组后，40ms 后才发出了 ACK 响应（图中蓝色行）。实际上，该延时是TCP 延迟确认（Delayed ACK）导致的，延时的时间就是TCP 延迟确认的最小超时时间40ms，这是个神奇的40ms，如果以后一看到40ms这个值时，需条件反射想到是否是delay ack或者是Nagle算法的40ms。</p>
-<p><img src="https://note.youdao.com/yws/res/54081/AC9BB1D5220541519E62813CC9672ECF" alt="image"></p>
+<p><img src="16.png" alt="image"></p>
 <p>再看下面的案例：客户端需要发送2062字节数据，然后从服务器读取响应。</p>
 <p>通过wireshark抓包，数据分成了1460字节和602字节两段发送。<br>如图所示：发送第一段1460字节后，服务器等待40ms后才发送ACK；客户端也是收到ACK后才发送第二段的602字节。</p>
-<p><img src="https://note.youdao.com/yws/res/54133/9ACB73F1E2814A03A453517198DE91E4" alt="image"></p>
+<p><img src="17.png" alt="image"></p>
 <p>现象看起来跟Nalge算法和ACK延迟确认机制相符。首先一次发送的数据量已经超过了MTU（2062 &gt; 1460），因此被分片了。客户端发送的第一段数据大小满足MSS，立即发送。服务器收到后因为要等待接收剩下的602个字节，所以没有发送响应数据，也就不能携带ACK，导致ACK延迟。客户端第二段602字节数据因为第一段数据没有确认而被延迟发送，直到40ms后收到ACK。因此条件反射想到是TCP_QUICKACK或者TCP_NODELAY没有开启，检查代码后发现确实TCP_QUICKACK和TCP_NODELAY都没开启，因此主动打开即可修复。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">recv(fd, rcvBuf, 132, 0); </span><br><span class="line">setsockopt(fd, IPPROTO_TCP, TCP_QUICKACK, (int[])&#123;1&#125;, sizeof(int)); </span><br></pre></td></tr></table></figure>
 <p>注意，TCP_QUICKACK需要在每次调用recv后重新设置，因为map tcp中明确提到该设置并非设置后就永久不变的：</p>
-<p><img src="https://note.youdao.com/yws/res/54161/DD9A9CF019824CD0A78EF2675753C77C" alt="image"></p>
+<p><img src="18.png" alt="image"></p>
 <p>针对数据发送方的禁用Nagle算法可以这个操作</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setsockopt(client_fd, SOL_TCP, TCP_NODELAY,(int[])&#123;1&#125;, sizeof(int));</span><br></pre></td></tr></table></figure>
 
@@ -347,7 +347,7 @@
 <li>使用 SO_SNDBUF 和 SO_RCVBUF ，可以分别调整套接字发送缓冲区和接收缓冲区的大小。</li>
 </ul>
 <p>内核选项的范围是全局的，套接字接口里面设置的是单个，如SO_SNDBUF设置得是当前socket发送缓冲区的大小。</p>
-<p><img src="https://note.youdao.com/yws/res/54296/50A8680C45734856A012683A80C68B18" alt="image"></p>
+<p><img src="19.png" alt="image"></p>
 <p>总结：</p>
 <ul>
 <li>在应用程序中，主要是优化 I/O 模型、工作模型以及应用层的网络协议；</li>
