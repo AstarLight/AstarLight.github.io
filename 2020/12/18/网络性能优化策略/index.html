@@ -248,6 +248,23 @@
 <li>增加最大文件描述符的数量。你可以使用 fs.nr_open 和 fs.file-max ，分别增大进程和系统的最大文件描述符数；或在应用程序的 systemd 配置文件中，配置 LimitNOFILE ，设置应用程序的最大文件描述符数。</li>
 </ul>
 <p>值得注意的是，内核参数tcp_tw_recycle<strong>不建议</strong>打开，因为它的副作用是会拒绝所有比这个客户端时间戳更靠前的网络包，所以我方的就把带了“倒退”的时间戳的包当作是“recycle的tw连接的重传数据，不是新的请求”，于是丢掉不回包，造成大量丢包。但按包的时间戳来判定包是否是重传包并不靠谱，比如机器时钟并不一定相同。因此高版本的Linux已经把该参数废弃了。</p>
+<p>除了上述方法可以移除系统中过多TIME_WAIT外，其实还可以使用SO_LIGNER参数快速关闭socket连接，不走TCP的四次挥手，而是使用RST快速关闭连接，这就避免了TIME_WAIT状态的产生。</p>
+<p>回顾一下TCP关闭连接的两种方式：</p>
+<ul>
+<li>FIN：正常关闭，走4次挥手，优雅关闭，发送 FIN 包表示自己这端所有的数据都已经发送出去了，后面不会再发送数据</li>
+<li>RST：处理异常情况，强制连接重置关闭，无法做出什么保证。</li>
+</ul>
+<p>scoket编程中通过linger结构体的l_onoff和l_linger来控制整个TCP关闭连接的行为。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">linger</span> &#123;</span></span><br><span class="line"></span><br><span class="line">     <span class="keyword">int</span> l_onoff; <span class="comment">/* 0 = off, nozero = on */</span></span><br><span class="line">     <span class="keyword">int</span> l_linger; <span class="comment">/* linger time */</span></span><br><span class="line"></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">linger</span> <span class="title">so_linger</span>;</span></span><br><span class="line">so_linger.l_onoff = <span class="number">1</span>;</span><br><span class="line">so_linger.l_linger = <span class="number">30</span>;</span><br><span class="line">z = setsockopt(s, SOL_SOCKET, SO_LINGER, &amp;so_linger,<span class="keyword">sizeof</span>(so_linger));</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>第一个字段 l_onoff 用来表示是否启用 linger 特性，非 0 为启用，0 为禁用 ，linux 内核默认为禁用。<br>禁用情况下, close函数立即返回，操作系统负责把缓冲队列中的数据全部发送至对端</li>
+<li>第二个参数 l_linger 在 l_onoff 为非 0 （即启用特性）时才会生效。</li>
+</ul>
+<ol>
+<li>如果 l_linger 的值为 0，那么调用 close，close 函数会立即返回，同时丢弃缓冲区内所有数据并立即发送 RST 包重置连接</li>
+<li>如果 l_linger 的值为非 0，那么此时 close 函数在阻塞直到 l_linger 时间超时或者数据发送完毕，发送队列在超时时间段内继续尝试发送，如果发送完成则皆大欢喜，超时则直接丢弃缓冲区内容 并 RST 掉连接。</li>
+</ol>
 <h3 id="2-CLOSE-WAIT过多（影响并发量，吞吐量）"><a href="#2-CLOSE-WAIT过多（影响并发量，吞吐量）" class="headerlink" title="2.CLOSE_WAIT过多（影响并发量，吞吐量）"></a>2.CLOSE_WAIT过多（影响并发量，吞吐量）</h3><p>一般而言CLOSE_WAIT不会很多，但当程序发生异常时，该状态会大量出现，逐渐耗尽系统fd，影响网络并发连接数和吞吐量。</p>
 <p>半关闭的状态下的服务器连接会处于 CLOSE_WAIT 状态，直到服务器发送了FIN。那么在应用层则是调用socket.close()会执行FIN的发送，如果服务器出现大量CLOSE_WAIT状态的连接，那么有可能的原因：</p>
 <ol>
@@ -266,6 +283,7 @@
 
 <p>CLOSE_WAIT意味着操作系统知道远程应用程序已关闭连接并等待本地应用程序也这样做，操作系统并没有提供 相应的TCP参数来解决此问题，因为操作系统并不知道你的程序是否还在处理重要数据，系统主动关闭CLOSE_WAIT连接并不安全。所以最好的 办法是检查拥有本地主机上的连接的应用程序。由于没有CLOSE_WAIT超时，连接可以永远保持这种状态（或者至少在程序最终关闭连接或进程存在或被杀死之前）。</p>
 <h3 id="3-SYN-FLOOD（影响吞吐和并发数）"><a href="#3-SYN-FLOOD（影响吞吐和并发数）" class="headerlink" title="3.SYN FLOOD（影响吞吐和并发数）"></a>3.SYN FLOOD（影响吞吐和并发数）</h3><p>为了缓解 SYN FLOOD 等，利用 TCP 协议特点进行攻击而引发的性能问题，你可以考虑优化与 SYN 状态相关的内核选项，比如采取下面几种措施。</p>
+<p><img src="20.png" alt="image"></p>
 <ul>
 <li>增大 TCP 半连接的最大数量 net.ipv4.tcp_max_syn_backlog ，或者开启 TCP SYN Cookies net.ipv4.tcp_syncookies ，来绕开半连接数量限制的问题（注意，这两个选项不可同时使用）。</li>
 <li>减少 SYN_RECV 状态的连接重传 SYN+ACK 包的次数 net.ipv4.tcp_synack_retries。</li>
@@ -347,7 +365,7 @@
 </ul>
 <p>内核选项的范围是全局的，套接字接口里面设置的是单个，如SO_SNDBUF设置得是当前socket发送缓冲区的大小。</p>
 <p><img src="19.png" alt="image"></p>
-<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
 <li>在应用程序中，主要是优化 I/O 模型、工作模型以及应用层的网络协议；</li>
 <li>在套接字层中，主要是优化套接字的缓冲区大小；</li>
 <li>在传输层中，主要是优化 TCP 和 UDP 协议；</li>
@@ -473,7 +491,7 @@
         
             <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87"><span class="nav-number">1.</span> <span class="nav-text">网络性能指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%94%B6%E5%8F%91%E5%8C%85%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">网络收发包流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MTU%E5%A4%A7%E5%B0%8F%EF%BC%88%E5%BD%B1%E5%93%8D%E6%97%B6%E5%BB%B6%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">MTU大小（影响时延）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E4%BC%98%E5%8C%96"><span class="nav-number">4.</span> <span class="nav-text">TCP优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-TIME-WAIT%E8%BF%87%E5%A4%9A%EF%BC%88%E5%BD%B1%E5%93%8D%E5%B9%B6%E5%8F%91%E9%87%8F%EF%BC%8C%E5%90%9E%E5%90%90%E9%87%8F%EF%BC%89"><span class="nav-number">4.1.</span> <span class="nav-text">1.TIME_WAIT过多（影响并发量，吞吐量）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-CLOSE-WAIT%E8%BF%87%E5%A4%9A%EF%BC%88%E5%BD%B1%E5%93%8D%E5%B9%B6%E5%8F%91%E9%87%8F%EF%BC%8C%E5%90%9E%E5%90%90%E9%87%8F%EF%BC%89"><span class="nav-number">4.2.</span> <span class="nav-text">2.CLOSE_WAIT过多（影响并发量，吞吐量）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-SYN-FLOOD%EF%BC%88%E5%BD%B1%E5%93%8D%E5%90%9E%E5%90%90%E5%92%8C%E5%B9%B6%E5%8F%91%E6%95%B0%EF%BC%89"><span class="nav-number">4.3.</span> <span class="nav-text">3.SYN FLOOD（影响吞吐和并发数）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Keepalive%EF%BC%88%E5%BD%B1%E5%93%8D%E5%90%9E%E5%90%90%E5%92%8C%E5%B9%B6%E5%8F%91%E9%87%8F%EF%BC%89"><span class="nav-number">4.4.</span> <span class="nav-text">4.Keepalive（影响吞吐和并发量）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Nagle%E7%AE%97%E6%B3%95%E5%92%8C%E5%BB%B6%E8%BF%9FACK%E5%AF%BC%E8%87%B4%E7%9A%84%E7%BD%91%E7%BB%9C%E5%BB%B6%E6%97%B6%EF%BC%88%E5%BD%B1%E5%93%8D%E6%97%B6%E5%BB%B6%EF%BC%89"><span class="nav-number">4.5.</span> <span class="nav-text">5.Nagle算法和延迟ACK导致的网络延时（影响时延）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UDP"><span class="nav-number">5.</span> <span class="nav-text">UDP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%B1%82"><span class="nav-number">6.</span> <span class="nav-text">应用层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#socket"><span class="nav-number">7.</span> <span class="nav-text">socket</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">8.</span> <span class="nav-text">总结：</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87"><span class="nav-number">1.</span> <span class="nav-text">网络性能指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%94%B6%E5%8F%91%E5%8C%85%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">网络收发包流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MTU%E5%A4%A7%E5%B0%8F%EF%BC%88%E5%BD%B1%E5%93%8D%E6%97%B6%E5%BB%B6%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">MTU大小（影响时延）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E4%BC%98%E5%8C%96"><span class="nav-number">4.</span> <span class="nav-text">TCP优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-TIME-WAIT%E8%BF%87%E5%A4%9A%EF%BC%88%E5%BD%B1%E5%93%8D%E5%B9%B6%E5%8F%91%E9%87%8F%EF%BC%8C%E5%90%9E%E5%90%90%E9%87%8F%EF%BC%89"><span class="nav-number">4.1.</span> <span class="nav-text">1.TIME_WAIT过多（影响并发量，吞吐量）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-CLOSE-WAIT%E8%BF%87%E5%A4%9A%EF%BC%88%E5%BD%B1%E5%93%8D%E5%B9%B6%E5%8F%91%E9%87%8F%EF%BC%8C%E5%90%9E%E5%90%90%E9%87%8F%EF%BC%89"><span class="nav-number">4.2.</span> <span class="nav-text">2.CLOSE_WAIT过多（影响并发量，吞吐量）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-SYN-FLOOD%EF%BC%88%E5%BD%B1%E5%93%8D%E5%90%9E%E5%90%90%E5%92%8C%E5%B9%B6%E5%8F%91%E6%95%B0%EF%BC%89"><span class="nav-number">4.3.</span> <span class="nav-text">3.SYN FLOOD（影响吞吐和并发数）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Keepalive%EF%BC%88%E5%BD%B1%E5%93%8D%E5%90%9E%E5%90%90%E5%92%8C%E5%B9%B6%E5%8F%91%E9%87%8F%EF%BC%89"><span class="nav-number">4.4.</span> <span class="nav-text">4.Keepalive（影响吞吐和并发量）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Nagle%E7%AE%97%E6%B3%95%E5%92%8C%E5%BB%B6%E8%BF%9FACK%E5%AF%BC%E8%87%B4%E7%9A%84%E7%BD%91%E7%BB%9C%E5%BB%B6%E6%97%B6%EF%BC%88%E5%BD%B1%E5%93%8D%E6%97%B6%E5%BB%B6%EF%BC%89"><span class="nav-number">4.5.</span> <span class="nav-text">5.Nagle算法和延迟ACK导致的网络延时（影响时延）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UDP"><span class="nav-number">5.</span> <span class="nav-text">UDP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%B1%82"><span class="nav-number">6.</span> <span class="nav-text">应用层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#socket"><span class="nav-number">7.</span> <span class="nav-text">socket</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">8.</span> <span class="nav-text">总结</span></a></li></ol>
     </div>
 </div>
         
