@@ -1,5 +1,6 @@
 ---
 title: Go快速上手—基本语言特性篇
+date: 2021-05-04 22:00:58
 tags: [go]	
 categories: 技术
 ---
