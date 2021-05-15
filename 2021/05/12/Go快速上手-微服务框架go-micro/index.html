@@ -205,7 +205,6 @@
 <li>Async Messaging：PubSub是异步通信和事件驱动架构的重要设计思想。事件通知是微服务开发的核心模式。</li>
 <li>可插拔接口：Go Micro为每个分布式系统抽象使用Go接口，因此，这些接口是可插拔的，并允许Go Micro与运行时无关，可以插入任何基础技术</li>
 </ul>
-<p><img src="./1.png" alt="image"></p>
 <p><img src="./2.png" alt="image"></p>
 <h2 id="go-micro通信流程"><a href="#go-micro通信流程" class="headerlink" title="go-micro通信流程"></a>go-micro通信流程</h2><p>通信的角色一共4个：server,client,register和broker，他们的各种的作用在于：</p>
 <ol>
@@ -231,7 +230,7 @@
 <p>Go Micro的接口间的关系如上图所示，每个接口都支持业界流行的开源方案，具体如下：</p>
 <p><img src="./5.png" alt="image"></p>
 <p>go-micro最重要的是service的创建，因为go-micro现在发布了v3版本，V2版本作者表示已经不再维护了，因此这里介绍V2和V3版本的go micro 如何创建一个服务，以及基本的服务管理指令。我们生产环境用的是V2版本，至于V3，看了下网上的资源以及项目中相关的特性介绍，感觉还是处于很初级的状态，如果直接用于生产环境感觉坑会不少，但是本着学习的目的还是想实践一下这个V3版本。另外，go micro的broker机制我们也给了实践例子，体验了go micro异步消息通信机制。</p>
-<h2 id="新建一个RPC服务（基于micro-v2）"><a href="#新建一个RPC服务（基于micro-v2）" class="headerlink" title="新建一个RPC服务（基于micro v2）"></a>新建一个RPC服务（基于micro v2）</h2><p>先安装相关组件</p>
+<h2 id="新建服务（基于micro-v2）"><a href="#新建服务（基于micro-v2）" class="headerlink" title="新建服务（基于micro v2）"></a>新建服务（基于micro v2）</h2><p>先安装相关组件</p>
 <ol>
 <li>go get github.com/micro/micro/v3/cmd/protoc-gen-micro@master</li>
 <li>go get github.com/micro/micro/v2</li>
@@ -280,7 +279,7 @@
 <p>解决方案：<br>可将生成的*.pb.micro.go文件中的v3依赖改为v2依赖即可</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">import ( 	</span><br><span class="line"> 	context &quot;context&quot; 	</span><br><span class="line">	client &quot;github.com&#x2F;micro&#x2F;go-micro&#x2F;v2&#x2F;client&quot;</span><br><span class="line"> 	server &quot;github.com&#x2F;micro&#x2F;go-micro&#x2F;v2&#x2F;server&quot;</span><br><span class="line">	api &quot;github.com&#x2F;micro&#x2F;micro&#x2F;v3&#x2F;service&#x2F;api&quot; </span><br><span class="line"> )</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<h2 id="新建服务-基于micro-v3"><a href="#新建服务-基于micro-v3" class="headerlink" title="新建服务(基于micro v3)"></a>新建服务(基于micro v3)</h2><p>现在go micro已经推出了V3版本，因为V3和V2版本有较多的不同，且存在兼容性不足的问题。下面的所有例子都是基于V3的实践。</p>
+<h2 id="新建服务-基于micro-v3"><a href="#新建服务-基于micro-v3" class="headerlink" title="新建服务 (基于micro v3)"></a>新建服务 (基于micro v3)</h2><p>现在go micro已经推出了V3版本，因为V3和V2版本有较多的不同，且存在兼容性不足的问题。下面的所有例子都是基于V3的实践。</p>
 <p>首先给出官方的上手文档:<a target="_blank" rel="noopener" href="https://micro.mu/getting-started">https://micro.mu/getting-started</a></p>
 <p>首先安装/升级自己的micro版本至V3</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get github.com&#x2F;micro&#x2F;micro&#x2F;v3</span><br></pre></td></tr></table></figure>
@@ -500,7 +499,7 @@
         
             <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#go-micro%E7%89%B9%E6%80%A7"><span class="nav-number">1.</span> <span class="nav-text">go-micro特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#go-micro%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">go-micro通信流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B0%E5%BB%BA%E4%B8%80%E4%B8%AARPC%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%9F%BA%E4%BA%8Emicro-v2%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">新建一个RPC服务（基于micro v2）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B0%E5%BB%BA%E6%9C%8D%E5%8A%A1-%E5%9F%BA%E4%BA%8Emicro-v3"><span class="nav-number">4.</span> <span class="nav-text">新建服务(基于micro v3)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BAHttp%E6%9C%8D%E5%8A%A1"><span class="nav-number">5.</span> <span class="nav-text">搭建Http服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85-%E5%9F%BA%E4%BA%8E%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1"><span class="nav-number">6.</span> <span class="nav-text">发布订阅(基于消息队列的异步通信)</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#go-micro%E7%89%B9%E6%80%A7"><span class="nav-number">1.</span> <span class="nav-text">go-micro特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#go-micro%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">go-micro通信流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B0%E5%BB%BA%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%9F%BA%E4%BA%8Emicro-v2%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">新建服务（基于micro v2）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B0%E5%BB%BA%E6%9C%8D%E5%8A%A1-%E5%9F%BA%E4%BA%8Emicro-v3"><span class="nav-number">4.</span> <span class="nav-text">新建服务 (基于micro v3)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BAHttp%E6%9C%8D%E5%8A%A1"><span class="nav-number">5.</span> <span class="nav-text">搭建Http服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85-%E5%9F%BA%E4%BA%8E%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1"><span class="nav-number">6.</span> <span class="nav-text">发布订阅(基于消息队列的异步通信)</span></a></li></ol>
     </div>
 </div>
         
