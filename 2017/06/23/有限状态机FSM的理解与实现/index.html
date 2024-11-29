@@ -1,0 +1,692 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="有限状态机（finite state machine）简称FSM，表示有限个状态及在这些状态之间的转移和动作等行为的数学模型，在计算机领域有着广泛的应用。FSM是一种逻辑单元内部的一种高效编程方法，在服务器编程中，服务器可以根据不同状态或者消息类型进行相应的处理逻辑，使得程序逻辑清晰易懂。 那有限状态机通常在什么地方被用到？ 处理程序语言或者自然语言的 tokenizer,自底向上解析语法的par">
+<meta property="og:type" content="article">
+<meta property="og:title" content="有限状态机FSM的理解与实现">
+<meta property="og:url" content="http://example.com/2017/06/23/%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BAFSM%E7%9A%84%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="有限状态机（finite state machine）简称FSM，表示有限个状态及在这些状态之间的转移和动作等行为的数学模型，在计算机领域有着广泛的应用。FSM是一种逻辑单元内部的一种高效编程方法，在服务器编程中，服务器可以根据不同状态或者消息类型进行相应的处理逻辑，使得程序逻辑清晰易懂。 那有限状态机通常在什么地方被用到？ 处理程序语言或者自然语言的 tokenizer,自底向上解析语法的par">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2017/06/23/%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BAFSM%E7%9A%84%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/1093303-20170623190453773-1051238237.png">
+<meta property="og:image" content="http://example.com/2017/06/23/%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BAFSM%E7%9A%84%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/1093303-20170623190514710-334307320.png">
+<meta property="article:published_time" content="2017-06-23T10:24:36.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:45.181Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="编程框架">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2017/06/23/%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BAFSM%E7%9A%84%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/1093303-20170623190453773-1051238237.png">
+  
+  
+  
+  <title>有限状态机FSM的理解与实现 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="有限状态机FSM的理解与实现"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2017-06-23 18:24" pubdate>
+          June 23, 2017 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.6k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          14 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">有限状态机FSM的理解与实现</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>有限状态机（finite state machine）简称FSM，表示有限个状态及在这些状态之间的转移和动作等行为的数学模型，在计算机领域有着广泛的应用。FSM是一种逻辑单元内部的一种高效编程方法，在服务器编程中，服务器可以根据不同状态或者消息类型进行相应的处理逻辑，使得程序逻辑清晰易懂。</p>
+<p><strong>那有限状态机通常在什么地方被用到？</strong></p>
+<p>处理程序语言或者自然语言的 tokenizer,自底向上解析语法的parser，<br>各种通信协议发送方和接受方传递数据对消息处理，游戏AI等都有应用场景。</p>
+<p>状态机有以下几种实现方法，我将一一阐述它们的优缺点。</p>
+<h2 id="一、使用if-else-if语句实现的FSM"><a href="#一、使用if-else-if语句实现的FSM" class="headerlink" title="一、使用if/else if语句实现的FSM"></a>一、使用if/else if语句实现的FSM</h2><p>使用if/else if语句是实现的FSM最简单最易懂的方法，我们只需要通过大量的if /else if语句来判断状态值来执行相应的逻辑处理。</p>
+<p>看看下面的例子，我们使用了大量的if/else if语句实现了一个简单的状态机，做到了根据状态的不同执行相应的操作，并且实现了状态的跳转。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&#x2F;&#x2F;比如我们定义了小明一天的状态如下</span><br><span class="line">enum</span><br><span class="line">&#123;</span><br><span class="line">	GET_UP,</span><br><span class="line">	GO_TO_SCHOOL,</span><br><span class="line">	HAVE_LUNCH,</span><br><span class="line">	GO_HOME,</span><br><span class="line">	DO_HOMEWORK,</span><br><span class="line">	SLEEP,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">	int state &#x3D; GET_UP;</span><br><span class="line">	&#x2F;&#x2F;小明的一天</span><br><span class="line">	while (1)</span><br><span class="line">	&#123;</span><br><span class="line">		if (state &#x3D;&#x3D; GET_UP)</span><br><span class="line">		&#123;</span><br><span class="line">			GetUp(); &#x2F;&#x2F;具体调用的函数</span><br><span class="line">			state &#x3D; GO_TO_SCHOOL;  &#x2F;&#x2F;状态的转移</span><br><span class="line">		&#125;</span><br><span class="line">		else if (state &#x3D;&#x3D; GO_TO_SCHOOL)</span><br><span class="line">		&#123;</span><br><span class="line">			Go2School();</span><br><span class="line">			state &#x3D; HAVE_LUNCH;</span><br><span class="line">		&#125;</span><br><span class="line">		else if (state &#x3D;&#x3D; HAVE_LUNCH)</span><br><span class="line">		&#123;</span><br><span class="line">			HaveLunch();</span><br><span class="line">		&#125;</span><br><span class="line">		...</span><br><span class="line">		else if (state &#x3D;&#x3D; SLEEP)</span><br><span class="line">		&#123;</span><br><span class="line">			Go2Bed();</span><br><span class="line">			state &#x3D; GET_UP;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>看完上面的例子，大家有什么感受？是不是感觉程序虽然简单易懂，但是使用了大量的if判断语句，使得代码很低端，同时代码膨胀的比较厉害。这个状态机的状态仅有几个，代码膨胀并不明显，但是如果我们需要处理的状态有数十个的话，该状态机的代码就不好读了。</p>
+<h2 id="二、使用switch实现FSM"><a href="#二、使用switch实现FSM" class="headerlink" title="二、使用switch实现FSM"></a>二、使用switch实现FSM</h2><p>使用switch语句实现的FSM的结构变得更为清晰了，其缺点也是明显的：这种设计方法虽然简单，通过一大堆判断来处理，适合小规模的状态切换流程，但如果规模扩大难以扩展和维护。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">	int state &#x3D; GET_UP;</span><br><span class="line">	&#x2F;&#x2F;小明的一天</span><br><span class="line">	while (1)</span><br><span class="line">	&#123;</span><br><span class="line"></span><br><span class="line">		switch(state)</span><br><span class="line">		&#123;</span><br><span class="line">		case GET_UP:</span><br><span class="line">			GetUp(); &#x2F;&#x2F;具体调用的函数</span><br><span class="line">			state &#x3D; GO_TO_SCHOOL;  &#x2F;&#x2F;状态的转移</span><br><span class="line">			break;</span><br><span class="line">		case GO_TO_SCHOOL:</span><br><span class="line">			Go2School();</span><br><span class="line">			state &#x3D; HAVE_LUNCH;</span><br><span class="line">			break;</span><br><span class="line">		case HAVE_LUNCH:</span><br><span class="line">			HaveLunch();</span><br><span class="line">			state &#x3D; GO_HOME;</span><br><span class="line">			break;</span><br><span class="line">			...</span><br><span class="line">		default:</span><br><span class="line">			break;</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="三、使用函数指针实现FSM"><a href="#三、使用函数指针实现FSM" class="headerlink" title="三、使用函数指针实现FSM"></a>三、使用函数指针实现FSM</h2><p>使用函数指针实现FSM的思路：建立相应的状态表和动作查询表，根据状态表、事件、动作表定位相应的动作处理函数，执行完成后再进行状态的切换。</p>
+<p>当然使用函数指针实现的FSM的过程还是比较费时费力，但是这一切都是值得的，因为当你的程序规模大时候，基于这种表结构的状态机，维护程序起来也是得心应手。</p>
+<p>下面给出一个使用函数指针实现的FSM的框架：</p>
+<p>我们还是以“小明的一天”为例设计出该FSM。</p>
+<p>先给出该FSM的状态转移图：<br><img src="/2017/06/23/%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BAFSM%E7%9A%84%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/1093303-20170623190453773-1051238237.png" srcset="/img/loading.gif" lazyload></p>
+<p><strong>下面讲解关键部分代码实现</strong></p>
+<p>首先我们定义出小明一天的活动状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;比如我们定义了小明一天的状态如下</span><br><span class="line">enum</span><br><span class="line">&#123;</span><br><span class="line">	GET_UP,</span><br><span class="line">	GO_TO_SCHOOL,</span><br><span class="line">	HAVE_LUNCH,</span><br><span class="line">	DO_HOMEWORK,</span><br><span class="line">	SLEEP,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>我们也定义出会发生的事件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">enum</span><br><span class="line">&#123;</span><br><span class="line">	EVENT1 &#x3D; 1,</span><br><span class="line">	EVENT2,</span><br><span class="line">	EVENT3,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<p>定义状态表的数据结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">typedef struct FsmTable_s</span><br><span class="line">&#123;</span><br><span class="line">	int event;   &#x2F;&#x2F;事件</span><br><span class="line">	int CurState;  &#x2F;&#x2F;当前状态</span><br><span class="line">	void (*eventActFun)();  &#x2F;&#x2F;函数指针</span><br><span class="line">	int NextState;  &#x2F;&#x2F;下一个状态</span><br><span class="line">&#125;FsmTable_t;</span><br></pre></td></tr></table></figure>
+
+<p>接下来定义出最重要FSM的状态表，我们整个FSM就是根据这个定义好的表来运转的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">FsmTable_t XiaoMingTable[] &#x3D;</span><br><span class="line">&#123;</span><br><span class="line">	&#x2F;&#x2F;&#123;到来的事件，当前的状态，将要要执行的函数，下一个状态&#125;</span><br><span class="line">	&#123; EVENT2,  SLEEP,           GetUp,        GET_UP &#125;,</span><br><span class="line">	&#123; EVENT1,  GET_UP,          Go2School,    GO_TO_SCHOOL &#125;,</span><br><span class="line">	&#123; EVENT2,  GO_TO_SCHOOL,    HaveLunch,    HAVE_LUNCH &#125;,</span><br><span class="line">	&#123; EVENT3,  HAVE_LUNCH,      DoHomework,   DO_HOMEWORK &#125;,</span><br><span class="line">	&#123; EVENT1,  DO_HOMEWORK,     Go2Bed,       SLEEP &#125;,</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F;add your codes here</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>状态机的注册、状态转移、事件处理的动作实现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;*状态机注册*&#x2F;</span><br><span class="line">void FSM_Regist(FSM_t* pFsm, FsmTable_t* pTable)</span><br><span class="line">&#123;</span><br><span class="line">	pFsm-&gt;FsmTable &#x3D; pTable;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;*状态迁移*&#x2F;</span><br><span class="line">void FSM_StateTransfer(FSM_t* pFsm, int state)</span><br><span class="line">&#123;</span><br><span class="line">	pFsm-&gt;curState &#x3D; state;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;*事件处理*&#x2F;</span><br><span class="line">void FSM_EventHandle(FSM_t* pFsm, int event)</span><br><span class="line">&#123;</span><br><span class="line">	FsmTable_t* pActTable &#x3D; pFsm-&gt;FsmTable;</span><br><span class="line">	void (*eventActFun)() &#x3D; NULL;  &#x2F;&#x2F;函数指针初始化为空</span><br><span class="line">	int NextState;</span><br><span class="line">	int CurState &#x3D; pFsm-&gt;curState;</span><br><span class="line">	int flag &#x3D; 0; &#x2F;&#x2F;标识是否满足条件</span><br><span class="line">	int i;</span><br><span class="line"></span><br><span class="line">	&#x2F;*获取当前动作函数*&#x2F;</span><br><span class="line">	for (i &#x3D; 0; i&lt;g_max_num; i++)</span><br><span class="line">	&#123;</span><br><span class="line">		&#x2F;&#x2F;当且仅当当前状态下来个指定的事件，我才执行它</span><br><span class="line">		if (event &#x3D;&#x3D; pActTable[i].event &amp;&amp; CurState &#x3D;&#x3D; pActTable[i].CurState)</span><br><span class="line">		&#123;</span><br><span class="line">			flag &#x3D; 1;</span><br><span class="line">			eventActFun &#x3D; pActTable[i].eventActFun;</span><br><span class="line">			NextState &#x3D; pActTable[i].NextState;</span><br><span class="line">			break;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	if (flag) &#x2F;&#x2F;如果满足条件了</span><br><span class="line">	&#123;</span><br><span class="line">		&#x2F;*动作执行*&#x2F;</span><br><span class="line">		if (eventActFun)</span><br><span class="line">		&#123;</span><br><span class="line">			eventActFun();</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		&#x2F;&#x2F;跳转到下一个状态</span><br><span class="line">		FSM_StateTransfer(pFsm, NextState);</span><br><span class="line">	&#125;</span><br><span class="line">	else</span><br><span class="line">	&#123;</span><br><span class="line">		&#x2F;&#x2F; do nothing</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主函数我们这样写，然后观察状态机的运转情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">	FSM_t fsm;</span><br><span class="line">	InitFsm(&amp;fsm);</span><br><span class="line">	int event &#x3D; EVENT1; </span><br><span class="line">	&#x2F;&#x2F;小明的一天,周而复始的一天又一天，进行着相同的活动</span><br><span class="line">	while (1)</span><br><span class="line">	&#123;</span><br><span class="line">		printf(&quot;event %d is coming...\n&quot;, event);</span><br><span class="line">		FSM_EventHandle(&amp;fsm, event);</span><br><span class="line">		printf(&quot;fsm current state %d\n&quot;, fsm.curState);</span><br><span class="line">		test(&amp;event); </span><br><span class="line">		sleep(1);  &#x2F;&#x2F;休眠1秒，方便观察</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看一看该状态机跑起来的状态转移情况：</p>
+<p><img src="/2017/06/23/%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BAFSM%E7%9A%84%E7%90%86%E8%A7%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0/1093303-20170623190514710-334307320.png" srcset="/img/loading.gif" lazyload></p>
+<p>上面的图可以看出，当且仅当在指定的状态下来了指定的事件才会发生函数的执行以及状态的转移，否则不会发生状态的跳转。这种机制使得这个状态机不停地自动运转，有条不絮地完成任务。</p>
+<p>与前两种方法相比，使用函数指针实现FSM能很好用于大规模的切换流程，只要我们实现搭好了FSM框架，以后进行扩展就很简单了（只要在状态表里加一行来写入新的状态处理就可以了）。</p>
+<p>需要FSM完整代码的童鞋请访问<a target="_blank" rel="noopener" href="https://github.com/AstarLight/FSM-framework/tree/master">我的github</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8A%80%E6%9C%AF/" class="category-chain-item">技术</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%BC%96%E7%A8%8B%E6%A1%86%E6%9E%B6/" class="print-no-link">#编程框架</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>有限状态机FSM的理解与实现</div>
+      <div>http://example.com/2017/06/23/有限状态机FSM的理解与实现/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>June 23, 2017</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/" title="内存问题检测神器：Valgrind">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">内存问题检测神器：Valgrind</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/" title="ICMP洪水攻击">
+                        <span class="hidden-mobile">ICMP洪水攻击</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

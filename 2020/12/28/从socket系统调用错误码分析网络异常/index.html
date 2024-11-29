@@ -1,0 +1,947 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="在进行网络编程中，经常会遇到一些奇怪的网络异常或错误，这些错误其实通过分析socket 的send和recv函数的返回值和错误码就可以得到具体的错误原因，进而可以对症下药解决网络问题。 send的返回值分析   返回值 错误码 含义 解决措施    &gt;0 无 返回值表示成功拷贝到发送缓冲区的字节数 无   &#x3D;0 无 发送的数据长度为0 检查发送的数据是否为空   -1 EACCES SO_B">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从socket系统调用错误码分析网络异常">
+<meta property="og:url" content="http://example.com/2020/12/28/%E4%BB%8Esocket%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E9%94%99%E8%AF%AF%E7%A0%81%E5%88%86%E6%9E%90%E7%BD%91%E7%BB%9C%E5%BC%82%E5%B8%B8/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在进行网络编程中，经常会遇到一些奇怪的网络异常或错误，这些错误其实通过分析socket 的send和recv函数的返回值和错误码就可以得到具体的错误原因，进而可以对症下药解决网络问题。 send的返回值分析   返回值 错误码 含义 解决措施    &gt;0 无 返回值表示成功拷贝到发送缓冲区的字节数 无   &#x3D;0 无 发送的数据长度为0 检查发送的数据是否为空   -1 EACCES SO_B">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-12-27T17:19:09.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:44.389Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>从socket系统调用错误码分析网络异常 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从socket系统调用错误码分析网络异常"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-12-28 01:19" pubdate>
+          December 28, 2020 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.1k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从socket系统调用错误码分析网络异常</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>在进行网络编程中，经常会遇到一些奇怪的网络异常或错误，这些错误其实通过分析socket 的send和recv函数的返回值和错误码就可以得到具体的错误原因，进而可以对症下药解决网络问题。</p>
+<h2 id="send的返回值分析"><a href="#send的返回值分析" class="headerlink" title="send的返回值分析"></a>send的返回值分析</h2><table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>错误码</th>
+<th>含义</th>
+<th>解决措施</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><div style="width: 20pt">&gt;0</div></td>
+<td><div style="width: 100pt">无</div></td>
+<td>返回值表示成功拷贝到发送缓冲区的字节数</td>
+<td>无</td>
+</tr>
+<tr>
+<td>=0</td>
+<td>无</td>
+<td>发送的数据长度为0</td>
+<td>检查发送的数据是否为空</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EACCES</td>
+<td>SO_BROADCAST没被设置却尝试向一个广播地址发送数据</td>
+<td>检查发送地址是否正确，或设置SO_BROADCAST</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EAGAIN</td>
+<td>非阻塞模式读操作被阻塞或者读超时</td>
+<td>正常，本次调用无数据可读，可以继续处理后面逻辑，下一个循环再读一次</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EWOULDBLOCK</td>
+<td>非阻塞模式下无数据可读或接收操作被阻塞或者接收超时</td>
+<td>正常，本次调用无数据可读，可以继续处理后面逻辑，下一个循环再读一次</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EBADF</td>
+<td>使用的sockfd是无效</td>
+<td>检查socket的建立是否成功</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ECONNRESET</td>
+<td>本连接收到了rst包，对方异常关闭了双方连接，本连接已经关闭了</td>
+<td>Connection reset by peer，在收到RST后的socket继续发送数据，会生成SIGPIPE信号, 导致进程退出（默认的系统处理SIGPIPE信号的方式） 。如果对 SIGPIPE 进行忽略处理， 二次调用write方法时, 会返回-1, 同时errno置为SIGPIPE。这类情况的处理方法是遇到ECONNRESET的错误码就调用close关闭连接。</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EFAULT</td>
+<td>访问了无效的用户地址空间，即指向缓冲区的指针有误</td>
+<td>检查缓冲区指针是否有分配空间，空间是否异常回收了</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EHOSTUNREACH</td>
+<td>对方地址不可达</td>
+<td>检查一下对方的网络状态,如ping探测一下</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EINTR</td>
+<td>由于信号中断，没写成功任何数据。</td>
+<td>正常，本次调用没有写入任何数据到发生缓冲区，下次调用需要再次写入</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EMSGSIZE</td>
+<td>发送的数据过大，无法发送</td>
+<td>出现在UDP发送数据时，发送的数据大于MTU 1500字节时发生，可以 调整发送数据的大小，分批发送；或者调大MTU，但不推荐</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ENETDOWN</td>
+<td>本地网络接口无法正常工作</td>
+<td>检查网卡，检查网络是否正常</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ENETUNREACH</td>
+<td>无网络路由</td>
+<td>检查路由</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ENOBUFS</td>
+<td>网卡的发送队列已满，一般表示网卡无法发送数据了</td>
+<td>UDP头域有一个16bit的字段用于标识UDP的包大小，所以一个UDP包数据长度最大为65K</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EPIPE</td>
+<td>尝试往一个已经断开的socket发送数据，第一次会产生ECONNRESET，如果后续继续这样做，系统会产生SIGPIPE信号通知线程，错误码变为EPIPE</td>
+<td>会产生broken pipe的错误，正确处理方式是close掉这个连接。建议应用根据需要处理SIGPIPE信号，至少不要用系统缺省的处理方式处理这个信号，系统缺省的处理方式是退出进程，这样你的应用就很难查处处理进程为什么退出。</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EADDRNOTAVAIL</td>
+<td>指定的本地地址已经不再可用了</td>
+<td>ifconif查看自己的IP是否变化了，是否与socket使用的IP不同</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EINVAL</td>
+<td>函数传参错误</td>
+<td>检查传参</td>
+</tr>
+</tbody></table>
+<h2 id="recv的返回值分析"><a href="#recv的返回值分析" class="headerlink" title="recv的返回值分析"></a>recv的返回值分析</h2><table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>错误码</th>
+<th>含义</th>
+<th>解决措施</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><div style="width: 20pt">&gt;0</div></td>
+<td><div style="width: 100pt">无</div></td>
+<td>成功接收到的数据字节数</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>无</td>
+<td>对方已正常关闭连接</td>
+<td>应用进程调用close关闭本方连接</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EAGAIN</td>
+<td>非阻塞模式下无数据可读或接收操作被阻塞或者接收超时</td>
+<td>正常，本次调用无数据可读，可以继续处理后面逻辑，下一个循环再读一次</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EWOULDBLOCK</td>
+<td>非阻塞模式下无数据可读或接收操作被阻塞或者接收超时</td>
+<td>正常，本次调用无数据可读，可以继续处理后面逻辑，下一个循环再读一次</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EBADF</td>
+<td>使用的sockfd是无效</td>
+<td>检查socket的建立是否成功</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ECONNRESET</td>
+<td>本连接收到了rst包，对方异常关闭了双方连接，本连接已经关闭了</td>
+<td>Connection reset by peer，在收到RST后的socket继续读数据，会生成SIGPIPE信号, 导致进程退出（默认的系统处理SIGPIPE信号的方式） 。如果对 SIGPIPE 进行忽略处理， 二次调用recv方法时, 会返回-1, 同时errno置为SIGPIPE。这类情况的处理方法是遇到ECONNRESET的错误码就调用close关闭连接。</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EFAULT</td>
+<td>访问了无效的用户地址空间，即指向缓冲区的指针有误</td>
+<td>检查缓冲区指针是否有分配空间，空间是否异常回收了</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EINTR</td>
+<td>由于信号中断返回，没有任何数据可用。</td>
+<td>正常，本次调用无数据可读，可以继续处理后面逻辑，下一个循环再读一次</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ENOBUFS</td>
+<td>系统无法再分配内部缓冲区，内存不足</td>
+<td>系统层面的问题，检查系统内存使用情况</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ENOTCONN</td>
+<td>面向连接的socket尚未连接</td>
+<td>检查是否判断了connet的状态，可能是connet失败了但自己还是继续调用recv读数据</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ETIMEDOUT</td>
+<td>连接超时，TCP keepalive 超时触发</td>
+<td>对方已经可能连接关闭了，我们调用close关闭自己的连接</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EINVAL</td>
+<td>函数传参错误</td>
+<td>检查传参</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>ECONNREFUSED</td>
+<td>对方拒绝网络连接</td>
+<td>调用close关连接，检查接收方的网络访问策略</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>EPIPE</td>
+<td>尝试往一个已经断开的socket读取数据，第一次会产生ECONNRESET，如果后续继续这样做，系统会产生SIGPIPE信号通知线程，错误码变为EPIPE</td>
+<td>会产生broken pipe的错误，正确处理方式是close掉这个连接。建议应用根据需要处理SIGPIPE信号，至少不要用系统缺省的处理方式处理这个信号，系统缺省的处理方式是退出进程，这样你的应用就很难查处处理进程为什么退出。</td>
+</tr>
+</tbody></table>
+<p>特别：返回值&lt;0时并且(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)的情况下认为连接是正常的，继续接收。</p>
+<h2 id="总结常见的网络异常情况"><a href="#总结常见的网络异常情况" class="headerlink" title="总结常见的网络异常情况"></a>总结常见的网络异常情况</h2><h3 id="1-bind-时的address-already-used"><a href="#1-bind-时的address-already-used" class="headerlink" title="1. bind()时的address already used"></a>1. bind()时的address already used</h3><p>bind()时失败，错误码为EADDRINUSE。</p>
+<p>原因：</p>
+<ol>
+<li>有线程或进程占用着该IP和端口，导致bind失败。</li>
+<li>进程运行，然后重启了，因为有time_wait状态的存在，需要等待2msl的时间才能释放端口，在释放端口前进行bind，也会失败。</li>
+<li>有进程使用了0.0.0.0绑定了相同的端口（0.0.0.0表示所有本地网络地址）。在默认设置下，没有socket能够绑定到同一地址的同一端口。比如在Socket A已经绑定了0.0.0.0:8000以后，Socket B若是想要绑定192.168.0.100:8000，那就会报EADDRINUSE。因为Socket A已经绑定了所有ip地址的8000端口，包括192.168.0.100:8000。</li>
+</ol>
+<p>地址冲突情况列举：</p>
+<table>
+<thead>
+<tr>
+<th>SO_REUSEADDR</th>
+<th>socketA</th>
+<th>socketB</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ON/OFF</td>
+<td>192.168.0.1:21</td>
+<td>192.168.0.1:21</td>
+<td>Error (EADDRINUSE)</td>
+</tr>
+<tr>
+<td>ON/OFF</td>
+<td>192.168.0.1:21</td>
+<td>10.0.0.1:21</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>ON/OFF</td>
+<td>10.0.0.1:21</td>
+<td>192.168.0.1:21</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>OFF</td>
+<td>0.0.0.0:21</td>
+<td>192.168.1.0:21</td>
+<td>Error (EADDRINUSE)</td>
+</tr>
+<tr>
+<td>OFF</td>
+<td>192.168.1.0:21</td>
+<td>0.0.0.0:21</td>
+<td>Error (EADDRINUSE)</td>
+</tr>
+<tr>
+<td>ON</td>
+<td>0.0.0.0:21</td>
+<td>192.168.1.0:21</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>ON</td>
+<td>192.168.1.0:21</td>
+<td>0.0.0.0:21</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>ON/OFF</td>
+<td>0.0.0.0:21</td>
+<td>0.0.0.0:21</td>
+<td>Error (EADDRINUSE)</td>
+</tr>
+</tbody></table>
+<p>解决：<br>setsockopt里设置SO_REUSEADDR。设置了SO_REUSEADDR以后，判断冲突的方式就变了。只要地址不是正好(exactly)相同，那么多个Socket就能绑定到同一ip上。比如0.0.0.0和192.168.0.100，虽然逻辑意义上前者包含了后者，但是0.0.0.0泛指所有本地ip，而192.168.0.100特指某一ip，两者并不是完全相同，所以Socket B尝试绑定的时候，不会再报EADDRINUSE，而是绑定成功。另外，SO_REUSEADDR的另一个作用是，<strong>可以绑定TIME_WAIT状态的地址</strong>。</p>
+<h3 id="2-connect-时的address-already-used"><a href="#2-connect-时的address-already-used" class="headerlink" title="2. connect()时的address already used"></a>2. connect()时的address already used</h3><p>Connect()失败，错误码为EADDRINUSE。</p>
+<p>在默认情况下，一般在bind()时可能会出现EADDRINUSE问题，bind()时因为src ip和src port已经不同，不可能报EADDRINUSE。但是在SO_REUSEADDR和SO_REUSEPORT下，因为地址有重用，那么当重用的地址端口尝试连接同一个远端主机的同一端口时(connect()时)，就会报EADDRINUSE。</p>
+<p>比如本机只有两个地址，127.0.0.1和192.168.0.1，其中后者是可访问因特网的网卡的地址。在SO_REUSEADDR下，并且Socket A绑定了Socket A0.0.0.0:8000, Socket B绑定了192.168.0.1:8000以后，Socket A发起了与远端主机111.13.101.208:80的连接。此时根据路由表规则，连接将被绑定到192.168.0.1，产生的连接ID为{<SOCK_STREAM>, &lt;192.168.0.1&gt;, &lt;8000&gt;, &lt;111.13.101.208&gt;, &lt;80&gt;}，Socket A连接成功。但是如果Socket B也想尝试发起与远端主机111.13.101.208:80的连接，就会产生一样的连接ID，所以报了EADDRINUSE。</SOCK_STREAM></p>
+<p>linux kernel 3.9 引入了最新的SO_REUSEPORT选项，使得多进程或者多线程创建多个绑定同一个ip:port的监听socket，提高服务器的接收链接的并发能力,程序的扩展性更好；此时需要设置SO_REUSEPORT（注意所有进程都要设置才生效）。<br>使用方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT,(const void *)&amp;reuse , sizeof(int));</span><br></pre></td></tr></table></figure>
+<p>SO_REUSEPORT的三个作用：</p>
+<ol>
+<li>每一个进程有一个独立的监听socket，并且bind相同的ip:port，独立的listen()、accept()和connect()；提高接收连接的能力。（例如nginx多进程同时监听同一个ip:port）</li>
+<li>避免了应用层多线程或者进程监听同一ip:port的“惊群效应”。</li>
+<li>内核层面实现负载均衡，保证每个进程或者线程接收均衡的连接数。</li>
+</ol>
+<p>SO_REUSEPORT套接字选项起作用的三个前提：</p>
+<ol>
+<li>本选项允许完全重复的捆绑，不过只有在想要捆绑同一IP地址和端口的每个套接字都指定了本套接字选项才行。</li>
+<li>如果被捆绑的IP地址是一个多播地址，那么SO_REUSEADDR和SO_REUSEPORT被认为是等效的</li>
+<li>只进程用户组相同的服务器进程才能监听同一ip:port （安全性考虑），一个用户便不能窃取其他用户的端口，这一点不同于SO_REUSEADDR。</li>
+</ol>
+<p>现在已经存在一个没有启用SO_REUSEPORT选项的套接字，而另外一个设置了SO_REUSEPORT选项的套接字要绑定与第一个套接字相同的地址和端口，这种情况会绑定失败，就算已绑定套接字是一个处于在TIME_WAIT状态的连接，也无法成功；要绑定一个与TIME_WAIT状态相同地址和端口的套接字，要么设置在新套接字上设置SO_REUSEADDR选项，要么在原套接字和将要绑定的套接字上都设置SO_REUSEPORT选项；当然也允许同时设置SO_REUSEADDR和SO_REUSEPORT选项；</p>
+<h3 id="4-connect-reset-by-peer"><a href="#4-connect-reset-by-peer" class="headerlink" title="4. connect reset by peer"></a>4. connect reset by peer</h3><p>这个提示的出现的情景：己方socket给对方发送数据时，对方因为异常情况回了RST包，己方系统也会关闭这个连接，回收相应的socket资源，并往上通知应用进程，当应用程序调用recv或send进行数据读写时，其返回值为-1，error被设为ECONNRESET，要求应用程序自行处理该异常。</p>
+<p>因此，当网络编程中需要处理send()范围值为-1的异常情况，同时检查errorn是否为ECONNRESET，如果是错误码是ECONNRESET，就表明对方已经异常关闭了连接，我们系统收到RST包会也会断掉连接，此时的socket已经是不可用了。此时我们应该调用close()，结束本次通信。</p>
+<h3 id="5-broken-pipe"><a href="#5-broken-pipe" class="headerlink" title="5. broken pipe"></a>5. broken pipe</h3><p>如果我们无视ECONNRESET错误，继续往已被RST关闭的连接发送数据时，就会触发“broken pipe”的错误提示，而且send的返回值仍为-1.error被设为EPIPE。因为该连接已经断开了，因此还往这个socket发送数据是一个未定义的行为，因此需要避免这个行为，因为很危险，可能会导致进程异常退出。因为发生这种向一个因为RST关闭的连接发送数据，系统会产生一个SIGPIPE的信号，通知进程处理，但是进程没有接管这个信号，系统默认会杀死进程。</p>
+<p>因此针对该情况的解决方法就是，判断我们send的返回值是否为-1且error为ECONNRESET，是则马上close掉连接。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8A%80%E6%9C%AF/" class="category-chain-item">技术</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/linux/" class="print-no-link">#linux</a>
+      
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="print-no-link">#计算机网络</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从socket系统调用错误码分析网络异常</div>
+      <div>http://example.com/2020/12/28/从socket系统调用错误码分析网络异常/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>December 28, 2020</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/01/02/2020%E5%B9%B4%E7%BB%88%E6%80%BB%E7%BB%93%EF%BC%9A%E9%87%8D%E6%96%B0%E4%B8%8A%E8%B7%AF/" title="2020年终总结：重新上路">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">2020年终总结：重新上路</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/12/25/%E8%B0%88%E8%B0%88socket%E7%BC%93%E5%86%B2%E5%8C%BA/" title="谈谈socket缓冲区">
+                        <span class="hidden-mobile">谈谈socket缓冲区</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

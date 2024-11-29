@@ -1,0 +1,799 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Go的一个比较流行的HTTP后台框架是Gin，若要搭建Go的HTTP后台，推荐直接学习Gin。 Gin简介Gin 特性  快速：路由不使用反射，基于Radix树，内存占用少。 中间件：HTTP请求，可先经过一系列中间件处理，例如：Logger，Authorization，GZIP等。这个特性和 NodeJs 的 Koa 框架很像。中间件机制也极大地提高了框架的可扩展性。 异常处理：服务始终可用，不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go快速上手—Web服务器篇">
+<meta property="og:url" content="http://example.com/2021/05/05/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%E2%80%94Web%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AF%87/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Go的一个比较流行的HTTP后台框架是Gin，若要搭建Go的HTTP后台，推荐直接学习Gin。 Gin简介Gin 特性  快速：路由不使用反射，基于Radix树，内存占用少。 中间件：HTTP请求，可先经过一系列中间件处理，例如：Logger，Authorization，GZIP等。这个特性和 NodeJs 的 Koa 框架很像。中间件机制也极大地提高了框架的可扩展性。 异常处理：服务始终可用，不">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/05/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%E2%80%94Web%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AF%87/1.png">
+<meta property="article:published_time" content="2021-05-05T14:14:58.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:44.263Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="go">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2021/05/05/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%E2%80%94Web%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AF%87/1.png">
+  
+  
+  
+  <title>Go快速上手—Web服务器篇 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Go快速上手—Web服务器篇"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-05-05 22:14" pubdate>
+          May 5, 2021 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          42 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Go快速上手—Web服务器篇</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Go的一个比较流行的HTTP后台框架是Gin，若要搭建Go的HTTP后台，推荐直接学习Gin。</p>
+<h2 id="Gin简介"><a href="#Gin简介" class="headerlink" title="Gin简介"></a>Gin简介</h2><p>Gin 特性</p>
+<ul>
+<li>快速：路由不使用反射，基于Radix树，内存占用少。</li>
+<li>中间件：HTTP请求，可先经过一系列中间件处理，例如：Logger，Authorization，GZIP等。这个特性和 NodeJs 的 Koa 框架很像。中间件机制也极大地提高了框架的可扩展性。</li>
+<li>异常处理：服务始终可用，不会宕机。Gin 可以捕获 panic，并恢复。而且有极为便利的机制处理HTTP请求过程中发生的错误。</li>
+<li>JSON：Gin可以解析并验证请求的JSON。这个特性对Restful API的开发尤其有用。</li>
+<li>路由分组：例如将需要授权和不需要授权的API分组，不同版本的API分组。而且分组可嵌套，且性能不受影响。</li>
+<li>渲染内置：原生支持JSON，XML和HTML的渲染。</li>
+</ul>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
+<li>go env -w GO111MODULE=on</li>
+<li>go env -w GOPROXY=<a target="_blank" rel="noopener" href="https://goproxy.io,direct/">https://goproxy.io,direct</a></li>
+<li>设置后，重新运行： go get -u github.com/gin-gonic/gin，</li>
+<li>在项目文件夹下运行 go mod init gin</li>
+<li>在项目文件夹下运行 go mod edit -require github.com/gin-gonic/gin@latest</li>
+</ol>
+<h2 id="一个最基本的web框架实践"><a href="#一个最基本的web框架实践" class="headerlink" title="一个最基本的web框架实践"></a>一个最基本的web框架实践</h2><p>一个最简单的web框架，实现了get和post两种方式，幷绑定了端口9999进行监听。实现的基本功能：</p>
+<ol>
+<li>绑定指定端口9999进行监听</li>
+<li>实现了get和post两种方式</li>
+<li>实现了路由解析，不同的路由会由对用的函数进行处理请求</li>
+<li>实现了解析请求格式为query string的请求</li>
+<li>实现了解析参数格式为json的请求</li>
+<li>实现了json响应的回复</li>
+</ol>
+<p><strong>路由方法有 GET, POST, PUT, PATCH, DELETE 和 OPTIONS，还有Any，可匹配以上任意类型的请求。</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HelloWeb</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	c.String(http.StatusOK, <span class="string">&quot;Hello, Go\n&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HiWeb</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	c.String(http.StatusOK, <span class="string">&quot;Hi, Go\n&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解析query string， 匹配users?name=xxx&amp;role=xxx&amp;age=xx，role可选</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">QueryUser</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	name := c.Query(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">	age := c.Query(<span class="string">&quot;age&quot;</span>)</span><br><span class="line">	role := c.DefaultQuery(<span class="string">&quot;role&quot;</span>, <span class="string">&quot;teacher&quot;</span>)</span><br><span class="line">	resp := fmt.Sprintf(<span class="string">&quot;my name is %s, my age is %s, my role is %s\n&quot;</span>, name, age, role)</span><br><span class="line">	c.String(http.StatusOK, resp)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Login <span class="keyword">struct</span> &#123;</span><br><span class="line">	User <span class="keyword">string</span> <span class="string">`json:&quot;user&quot;`</span></span><br><span class="line">	Password <span class="keyword">string</span> <span class="string">`json:&quot;password&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解析json格式的请求</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">LoginCheck</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> req Login</span><br><span class="line">	<span class="keyword">if</span> err := c.ShouldBindJSON(&amp;req); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		c.JSON(http.StatusBadRequest, gin.H&#123;<span class="string">&quot;error&quot;</span>: err.Error()&#125;)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	resp := gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;someJSON&quot;</span>, <span class="string">&quot;status&quot;</span>: <span class="number">200</span>&#125;</span><br><span class="line">	c.JSON(http.StatusOK, resp)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">type</span> Response <span class="keyword">struct</span> &#123;</span><br><span class="line">	Name    <span class="keyword">string</span></span><br><span class="line">	Message <span class="keyword">string</span></span><br><span class="line">	Status  <span class="keyword">int</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">LoginCheck2</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> req Login</span><br><span class="line">	<span class="keyword">if</span> err := c.ShouldBindJSON(&amp;req); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		c.JSON(http.StatusBadRequest, gin.H&#123;<span class="string">&quot;error&quot;</span>: err.Error()&#125;)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">var</span> resp Response</span><br><span class="line">	resp.Name = req.User</span><br><span class="line">	resp.Message = <span class="string">&quot;OKOK&quot;</span></span><br><span class="line">	resp.Status = <span class="number">200</span></span><br><span class="line">	c.JSON(http.StatusOK, resp)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	r := gin.Default()</span><br><span class="line">	r.GET(<span class="string">&quot;/hello&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		HelloWeb(c)</span><br><span class="line">	&#125;)</span><br><span class="line">	r.POST(<span class="string">&quot;/hi&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		HiWeb(c)</span><br><span class="line">	&#125;)</span><br><span class="line">	r.GET(<span class="string">&quot;/user&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		QueryUser(c)</span><br><span class="line">	&#125;)</span><br><span class="line">	r.POST(<span class="string">&quot;/login&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		LoginCheck(c)</span><br><span class="line">	&#125;)</span><br><span class="line">	r.POST(<span class="string">&quot;/login2&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		LoginCheck2(c)</span><br><span class="line">	&#125;)</span><br><span class="line">	r.Run(<span class="string">&quot;:9999&quot;</span>) <span class="comment">//  listen and serve on 0.0.0.0:9999</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>访问对应的URL</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:~ junshili$ curl -X POST http://localhost:9999/hi</span><br><span class="line">Hi, Go</span><br><span class="line">junshideMacBook-Pro:~ junshili$ curl http://localhost:9999/hello</span><br><span class="line">Hello, Go</span><br><span class="line"></span><br><span class="line">junshideMacBook-Pro:~ junshili$ curl &quot;http://localhost:9999/user?name=James&amp;age=19&amp;role=student&quot;</span><br><span class="line">my name is James, my age is 19, my role is student</span><br><span class="line"></span><br><span class="line">curl -X POST http://localhost:9999/login -d &#x27;&#123;&quot;user&quot;:&quot;kk&quot;, &quot;password&quot;:&quot;123&quot;&#125;&#x27; -H &quot;content-type:application/json&quot;</span><br><span class="line">&#123;&quot;message&quot;:&quot;someJSON&quot;,&quot;status&quot;:200&#125;</span><br><span class="line"></span><br><span class="line">junshideMacBook-Pro:~ junshili$ curl -X POST http://localhost:9999/login2 -d &#x27;&#123;&quot;user&quot;:&quot;kk&quot;, &quot;password&quot;:&quot;123&quot;&#125;&#x27; -H &quot;content-type:application/json&quot;</span><br><span class="line">&#123;&quot;Name&quot;:&quot;kk&quot;,&quot;Message&quot;:&quot;OKOK&quot;,&quot;Status&quot;:200&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="一个带有复杂路由项目实践"><a href="#一个带有复杂路由项目实践" class="headerlink" title="一个带有复杂路由项目实践"></a>一个带有复杂路由项目实践</h2><p>当项目大到一定程度后，上面再main.go里写处理函数的方式已经不再适用，一个更合适的方法是把处理函数迁移到一个文件里单独写逻辑，而main.go里越简单越好，只做路由选择，不做业务函数的实现。</p>
+<p>因此，项目按照该树结构来组织，routers放各个业务代码的实现，一个文件对应一个子业务，比如这里的login和user。main.go里不再写业务逻辑，唯一的功能就是做路由注册（调用SetupUserRouter）。这样一来，复杂的web项目也能清晰管理了。</p>
+<p>main.go</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;web_demo/routers&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	r := gin.Default()</span><br><span class="line">    routers.SetupUserRouter(r)</span><br><span class="line">	routers.SetupLoginRouter(r)</span><br><span class="line">    <span class="keyword">if</span> err := r.Run(<span class="string">&quot;:9999&quot;</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        fmt.Println(<span class="string">&quot;startup service failed, err:%v\n&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>user.go</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> routers</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解析query string， 匹配users?name=xxx&amp;role=xxx&amp;age=xx，role可选</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">QueryUser</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	name := c.Query(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">	age := c.Query(<span class="string">&quot;age&quot;</span>)</span><br><span class="line">	role := c.DefaultQuery(<span class="string">&quot;role&quot;</span>, <span class="string">&quot;teacher&quot;</span>)</span><br><span class="line">	resp := fmt.Sprintf(<span class="string">&quot;my name is %s, my age is %s, my role is %s\n&quot;</span>, name, age, role)</span><br><span class="line">	c.String(http.StatusOK, resp)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupUserRouter</span><span class="params">(e *gin.Engine)</span></span> &#123;</span><br><span class="line">	e.GET(<span class="string">&quot;/users&quot;</span>, QueryUser)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>login.go</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> routers</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">type</span> Login <span class="keyword">struct</span> &#123;</span><br><span class="line">	User <span class="keyword">string</span> <span class="string">`json:&quot;user&quot;`</span></span><br><span class="line">	Password <span class="keyword">string</span> <span class="string">`json:&quot;password&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解析json格式的请求</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">LoginCheck</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> req Login</span><br><span class="line">	<span class="keyword">if</span> err := c.ShouldBindJSON(&amp;req); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		c.JSON(http.StatusBadRequest, gin.H&#123;<span class="string">&quot;error&quot;</span>: err.Error()&#125;)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	resp := gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;someJSON&quot;</span>, <span class="string">&quot;status&quot;</span>: <span class="number">200</span>&#125;</span><br><span class="line">	c.JSON(http.StatusOK, resp)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupLoginRouter</span><span class="params">(e *gin.Engine)</span></span> &#123;</span><br><span class="line">	e.POST(<span class="string">&quot;/login&quot;</span>, LoginCheck)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>请求和响应</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl &quot;http://localhost:9999/users?name=James&amp;age=19&amp;role=student&quot;</span><br><span class="line">my name is James, my age is 19, my role is student</span><br><span class="line"></span><br><span class="line">junshideMacBook-Pro:web junshili$ curl -X POST http://localhost:9999/login -d &#x27;&#123;&quot;user&quot;:&quot;kk&quot;, &quot;password&quot;:&quot;123&quot;&#125;&#x27; -H &quot;content-type:application/json&quot;</span><br><span class="line">&#123;&quot;message&quot;:&quot;someJSON&quot;,&quot;status&quot;:200&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="分组路由"><a href="#分组路由" class="headerlink" title="分组路由"></a>分组路由</h2><p>如果有一组路由，前缀都是/api/v1开头，是否每个路由都需要加上/api/v1这个前缀呢？答案是不需要，分组路由可以解决这个问题。利用分组路由还可以更好地实现权限控制，例如将需要登录鉴权的路由放到同一分组中去，简化权限控制。</p>
+<p>比如我们改写login.go，请求URL调整为login/logincheck2和login/logincheck这两个路径，此时我们使用Group函数即可。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> routers</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">type</span> Login <span class="keyword">struct</span> &#123;</span><br><span class="line">	User <span class="keyword">string</span> <span class="string">`json:&quot;user&quot;`</span></span><br><span class="line">	Password <span class="keyword">string</span> <span class="string">`json:&quot;password&quot;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解析json格式的请求</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">LoginCheck</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> req Login</span><br><span class="line">	<span class="keyword">if</span> err := c.ShouldBindJSON(&amp;req); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		c.JSON(http.StatusBadRequest, gin.H&#123;<span class="string">&quot;error&quot;</span>: err.Error()&#125;)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	resp := gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;someJSON&quot;</span>, <span class="string">&quot;status&quot;</span>: <span class="number">200</span>&#125;</span><br><span class="line">	c.JSON(http.StatusOK, resp)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解析json格式的请求</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">LoginCheck2</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> req Login</span><br><span class="line">	<span class="keyword">if</span> err := c.ShouldBindJSON(&amp;req); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		c.JSON(http.StatusBadRequest, gin.H&#123;<span class="string">&quot;error&quot;</span>: err.Error()&#125;)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	resp := gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;someJSON2&quot;</span>, <span class="string">&quot;status&quot;</span>: <span class="number">200</span>&#125;</span><br><span class="line">	c.JSON(http.StatusOK, resp)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupLoginRouter</span><span class="params">(e *gin.Engine)</span></span> &#123;</span><br><span class="line">	v1 := e.Group(<span class="string">&quot;/login&quot;</span>)</span><br><span class="line">	v1.POST(<span class="string">&quot;/logincheck&quot;</span>, LoginCheck)</span><br><span class="line">	v1.POST(<span class="string">&quot;/logincheck2&quot;</span>, LoginCheck2)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>请求和响应</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl -X POST http://localhost:9999/login/logincheck2 -d &#x27;&#123;&quot;user&quot;:&quot;kk&quot;, &quot;password&quot;:&quot;123&quot;&#125;&#x27; -H &quot;content-type:application/json&quot;</span><br><span class="line">&#123;&quot;message&quot;:&quot;someJSON2&quot;,&quot;status&quot;:200&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="重定向"><a href="#重定向" class="headerlink" title="重定向"></a>重定向</h2><p>http 关于重定向的状态码：301，302</p>
+<ul>
+<li>301 redirect: 301 代表永久性转移(Permanently Moved)</li>
+<li>302 redirect: 302 代表暂时性转移(Temporarily Moved )</li>
+<li>301表示旧地址A的资源已经被永久地移除了（这个资源不可访问了），搜索引擎在抓取新内容的同时也将旧的网址交换为重定向之后的网址；</li>
+<li>302表示旧地址A的资源还在（仍然可以访问），这个重定向只是临时地从旧地址A跳转到地址B，搜索引擎会抓取新的内容而保存旧的网址。</li>
+</ul>
+<p>修改users.go，实现永久重定向</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupUserRouter</span><span class="params">(e *gin.Engine)</span></span> &#123;</span><br><span class="line">	v1 := e.Group(<span class="string">&quot;/users&quot;</span>)</span><br><span class="line">	v1.GET(<span class="string">&quot;/user&quot;</span>, QueryUser)</span><br><span class="line"></span><br><span class="line">	v1.GET(<span class="string">&quot;/redirect&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		c.Redirect(http.StatusMovedPermanently, <span class="string">&quot;/users&quot;</span>)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>请求和响应，通过响应可以看到，该url已经被重定向到/index了，请求发起者可以根据这个回复重新调整自己的请求路径。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl &quot;http://localhost:9999/users/redirect?name=James&amp;age=19&amp;role=student&quot;</span><br><span class="line">&lt;a href=&quot;/index&quot;&gt;Moved Permanently&lt;/a&gt;.</span><br></pre></td></tr></table></figure>
+
+<h2 id="同步异步"><a href="#同步异步" class="headerlink" title="同步异步"></a>同步异步</h2><ul>
+<li>goroutine机制可以方便地实现异步处理</li>
+<li>另外，在启动新的goroutine时，不应该使用原始上下文，必须使用它的只读副本</li>
+</ul>
+<p>考虑这样的场景：客户端请求web服务器进行一个复杂计算，这个计算任务耗时比较久，因此一个比较好的做法是异步处理，客户端只是提交计算任务，服务器收到任务后把任务存储进消息队列，就直接回复客户端任务已收到，断开本次连接，待消息队列的任务被处理完后，再主动发起请求通知客户端。这个就是一个典型的异步处理的场景。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	r := gin.Default()</span><br><span class="line">	<span class="comment">// 同步</span></span><br><span class="line">	r.GET(<span class="string">&quot;/sync&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		time.Sleep(<span class="number">3</span> * time.Second)</span><br><span class="line">		fmt.Println(<span class="string">&quot;同步执行：&quot;</span>, c.Request.URL.Path)</span><br><span class="line">		c.String(http.StatusOK, <span class="string">&quot;同步执行&quot;</span>)</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="comment">// 异步</span></span><br><span class="line">    r.GET(<span class="string">&quot;/async&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 需要搞一个副本</span></span><br><span class="line">        copyContext := c.Copy()</span><br><span class="line">        <span class="comment">// 异步处理</span></span><br><span class="line">        <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            time.Sleep(<span class="number">3</span> * time.Second)</span><br><span class="line">            fmt.Println(<span class="string">&quot;异步执行：&quot;</span> + copyContext.Request.URL.Path)</span><br><span class="line">        &#125;()</span><br><span class="line">		c.String(http.StatusOK, <span class="string">&quot;异步执行&quot;</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">	r.Run() <span class="comment">//  listen and serve on 0.0.0.0:8080</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>请求和响应，可以看出异步请求是秒回的，而同步请求花费了3s。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ time curl &quot;http://localhost:8080/async&quot;</span><br><span class="line">异步执行</span><br><span class="line">real	0m0.017s</span><br><span class="line">user	0m0.007s</span><br><span class="line">sys	0m0.007s</span><br><span class="line">junshideMacBook-Pro:web junshili$ time curl &quot;http://localhost:8080/sync&quot;</span><br><span class="line">同步执行</span><br><span class="line">real	0m3.021s</span><br><span class="line">user	0m0.008s</span><br><span class="line">sys	0m0.008s</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="token令牌"><a href="#token令牌" class="headerlink" title="token令牌"></a>token令牌</h2><p>Web服务器中身份验证是个重要的功能，比如app用户需要先登录才能操作一些内部功能。其中令牌身份验证是个常用的手段。</p>
+<p>JSON Web令牌（JWT）作为令牌系统而不是在每次请求时都发送用户名和密码，因此比其他方法（如基本身份验证）具有固有的优势。JWT主要有两个部分：提供用户名和密码以获取令牌；并根据请求检查该令牌。</p>
+<p>jwt由以下三部分构成：</p>
+<ul>
+<li>Header:头部 （对应：Header）</li>
+<li>Claims:声明 (对应：Payload)</li>
+<li>Signature:签名 (对应：Signature)</li>
+</ul>
+<p><img src="/2021/05/05/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%E2%80%94Web%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AF%87/1.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<h3 id="Header头部"><a href="#Header头部" class="headerlink" title="Header头部"></a>Header头部</h3><p>Header中指明jwt的签名算法，如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;typ&quot;: &quot;JWT&quot;,</span><br><span class="line">  &quot;alg&quot;: &quot;HS256&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Claims声明"><a href="#Claims声明" class="headerlink" title="Claims声明"></a>Claims声明</h3><p>声明中有jwt自身预置的，使用时可选。当然，我们也可以加入自定义的声明，<br>如下面例子中的Claims的UserId信息，但一定不要声明重要或私密的信息，因为这些信息是可破解的。</p>
+<h3 id="Signature签名"><a href="#Signature签名" class="headerlink" title="Signature签名"></a>Signature签名</h3><p>在生成jwt的token（令牌的意思）串时，先将Header和Claims用base64编码,再用Header中指定的加密算法，<br>将编码后的2个字符串进行加密（签名）,作用是防止数据篡改。加密时需要用到一个signString签名串(例子中的jwtkey)，我们可指定自己的signString，<br>不同的signString生成的加密结果不一样（解密时可能也需要同样的串，视加密算法而定）。签名部分主要和token的安全性有关，Signature的生成依赖前面两部分。<br>首先将Base64编码后的Header和Payload用.连接在一起，</p>
+<p>令牌的用法一般如下：</p>
+<ol>
+<li>客户端没有令牌时（第一次登陆或者令牌超时失效了）需要先请求生成令牌，此时可能需要玩家输入账号密码给服务器校验</li>
+<li>账号密码校验正确后，服务器会生成token返回给客户端</li>
+<li>后续客户端访问服务器只需要在header上带上token即可，无需再输入账号密码</li>
+<li>服务器从token解析出该token对应的玩家uid，即验证了玩家身份，使用该uid继续后面的逻辑处理。</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;net/http&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="string">&quot;github.com/dgrijalva/jwt-go&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> jwtkey = []<span class="keyword">byte</span>(<span class="string">&quot;lijunshi2015@163.com&quot;</span>)  <span class="comment">// 这个秘钥需要跟代码分开存储，这样才符合安全规范</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Claims <span class="keyword">struct</span> &#123;</span><br><span class="line">    UserId <span class="keyword">string</span></span><br><span class="line">    jwt.StandardClaims</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	r := gin.Default()</span><br><span class="line">	r.GET(<span class="string">&quot;/get_token&quot;</span>, genToken)</span><br><span class="line">	r.GET(<span class="string">&quot;/check_token&quot;</span>, checkToken)</span><br><span class="line">	r.Run(<span class="string">&quot;:8080&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 颁发token,请求参数为?uid=xxx</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">genToken</span><span class="params">(ctx *gin.Context)</span></span> &#123;</span><br><span class="line">	uid := ctx.Query(<span class="string">&quot;uid&quot;</span>)</span><br><span class="line">	expireTime := time.Now().Add(<span class="number">7</span> * <span class="number">24</span> * time.Hour) <span class="comment">// 24小时后token过期</span></span><br><span class="line">	claims := &amp;Claims &#123;</span><br><span class="line">		UserId : uid,</span><br><span class="line">		StandardClaims: jwt.StandardClaims &#123;</span><br><span class="line">			ExpiresAt: expireTime.Unix(), <span class="comment">// 过期时间</span></span><br><span class="line">			IssuedAt: time.Now().Unix(), <span class="comment">// 颁发时间</span></span><br><span class="line">			Issuer: <span class="string">&quot;127.0.0.1&quot;</span>,  <span class="comment">// token颁发者</span></span><br><span class="line">			Subject: <span class="string">&quot;user token&quot;</span>,  <span class="comment">// token主题</span></span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)</span><br><span class="line">	fmt.Println(token)</span><br><span class="line">	tokenString, err := token.SignedString(jwtkey)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(err)</span><br><span class="line">	&#125;</span><br><span class="line">	ctx.JSON(<span class="number">200</span>, gin.H&#123;<span class="string">&quot;token&quot;</span>: tokenString&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 验证token</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">checkToken</span><span class="params">(ctx *gin.Context)</span></span> &#123;</span><br><span class="line">	tokenString := ctx.GetHeader(<span class="string">&quot;Authorization&quot;</span>)  <span class="comment">// 从请求头获取token</span></span><br><span class="line">	<span class="keyword">if</span> tokenString == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">		ctx.JSON(http.StatusUnauthorized, gin.H&#123;<span class="string">&quot;code&quot;</span>: <span class="number">401</span>, <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;权限不足&quot;</span>&#125;)</span><br><span class="line">        ctx.Abort()</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 通过token解析出是哪个玩家(UserId)</span></span><br><span class="line">	token, claims, err := parseToken(tokenString)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> || !token.Valid &#123;</span><br><span class="line">		ctx.JSON(http.StatusUnauthorized, gin.H&#123;<span class="string">&quot;code&quot;</span>: <span class="number">401</span>, <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;权限不足&quot;</span>&#125;)</span><br><span class="line">        ctx.Abort()</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(<span class="string">&quot;token valid, uid:&quot;</span>, claims.UserId)</span><br><span class="line">	ctx.JSON(http.StatusUnauthorized, gin.H&#123;<span class="string">&quot;code&quot;</span>: <span class="number">200</span>, <span class="string">&quot;uid&quot;</span>: claims.UserId&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">parseToken</span><span class="params">(tokenString <span class="keyword">string</span>)</span> <span class="params">(*jwt.Token, *Claims, error)</span></span> &#123;</span><br><span class="line">	Claims := &amp;Claims&#123;&#125;</span><br><span class="line">	token, err := jwt.ParseWithClaims(tokenString, Claims, <span class="function"><span class="keyword">func</span><span class="params">(token *jwt.Token)</span> <span class="params">(i <span class="keyword">interface</span>&#123;&#125;, err error)</span></span> &#123;</span><br><span class="line">        <span class="keyword">return</span> jwtkey, <span class="literal">nil</span></span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> token, Claims, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>没有token时，带上自己的uid请求生成token</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl &quot;http://localhost:8080/get_token?uid=88998899&quot;</span><br><span class="line">&#123;&quot;token&quot;:&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiI4ODk5ODg5OSIsImV4cCI6MTYyMDU2Mzk5MywiaWF0IjoxNjE5OTU5MTkzLCJpc3MiOiIxMjcuMC4wLjEiLCJzdWIiOiJ1c2VyIHRva2VuIn0.-78Bw3jHNDZyGQgZPWbEfUTodPRIy9PlD0rVuoUO6ks&quot;&#125;</span><br></pre></td></tr></table></figure>
+<p>有token时请求头带上token，服务器从token解析出uid，完成身份验证。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl &quot;http://localhost:8080/check_token&quot; -H &quot;Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiI4ODk5ODg5OSIsImV4cCI6MTYyMDU2Mzk5MywiaWF0IjoxNjE5OTU5MTkzLCJpc3MiOiIxMjcuMC4wLjEiLCJzdWIiOiJ1c2VyIHRva2VuIn0.-78Bw3jHNDZyGQgZPWbEfUTodPRIy9PlD0rVuoUO6ks&quot;</span><br><span class="line">&#123;&quot;code&quot;:200,&quot;uid&quot;:&quot;88998899&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="防篡改，防重放"><a href="#防篡改，防重放" class="headerlink" title="防篡改，防重放"></a>防篡改，防重放</h2><p>篡改：API参数篡改就是恶意人通过抓包的方式获取到请求的接口的参数，通过修改相关的参数，达到欺骗服务器的目的，常用的防止篡改的方式是用签名以及加密的方式。</p>
+<p>重放：API重放攻击就是把之前窃听到的数据原封不动的重新发送给接收方.</p>
+<p>解决方案：</p>
+<ul>
+<li>防篡改：签名</li>
+<li>防重放：timestamp时间戳 + nonce随机数</li>
+</ul>
+<p>timestamp的作用： 每次HTTP请求，都需要加上timestamp参数，然后把timestamp和其他参数一起进行数字签名。HTTP请求从发出到达服务器一般都不会超过60s，所以服务器收到HTTP请求之后，首先判断时间戳参数与当前时间相比较，是否超过了60s，如果超过了则认为是非法的请求。</p>
+<p>nonce的作用： 每次HTTP请求，都需要加上nonce随机数。我们将每次请求的nonce参数存储到一个“集合”中，服务器每次处理HTTP请求时，首先判断该请求的nonce参数是否在该“集合”中，如果存在则认为是非法请求。nonce参数在首次请求时，已经被存储到了服务器上的“集合”中，再次发送请求会被识别并拒绝。</p>
+<p><strong>nonce的一次性可以解决timestamp参数60s(防止重放攻击)的问题，timestamp可以解决nonce参数“集合”越来越大的问题。=</strong></p>
+<h3 id="两种常用的请求签名的方式"><a href="#两种常用的请求签名的方式" class="headerlink" title="两种常用的请求签名的方式"></a>两种常用的请求签名的方式</h3><ol>
+<li>Md5(url+key) 的方式进行，URL+Key字符串拼接后的值用MD5加密生成签名，将签名发送到服务器端，同时服务器端已同样的方式计算出签名，然后比较俩个MD5的值是否相同，来确定URL是否被篡改。</li>
+<li>AES 对称加密，使用URL和秘钥进行加密。</li>
+</ol>
+<p><strong>MD5组合加密解密</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">appKey     &#x3D; &quot;mhxy&quot;</span><br><span class="line">appSecret  &#x3D; &quot;xxx&quot;</span><br><span class="line">encryptStr &#x3D; &quot;param_1&#x3D;xxx&amp;param_2&#x3D;xxx&amp;ak&#x3D;&quot;+appKey+&quot;&amp;ts&#x3D;xxx&quot;+&quot;nonce&#x3D;xxx&quot;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 自定义验证规则</span><br><span class="line">sn &#x3D; MD5(appSecret + encryptStr)</span><br></pre></td></tr></table></figure>
+<p>加密解密都是同一套流程，验证客户端发过来的sn与自己服务器计算的sn是否一致即可。</p>
+<p><strong>AES 对称加密</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">appKey     &#x3D; &quot;mhxy&quot;</span><br><span class="line">appSecret  &#x3D; &quot;xxx&quot;</span><br><span class="line">encryptStr &#x3D; &quot;param_1&#x3D;xxx&amp;param_2&#x3D;xxx&amp;ak&#x3D;&quot;+appKey+&quot;&amp;ts&#x3D;xxx&quot;+&quot;nonce&#x3D;xxx&quot;</span><br><span class="line"></span><br><span class="line">sn &#x3D; AesEncrypt(encryptStr, appSecret)</span><br></pre></td></tr></table></figure>
+
+<p>解密：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">decryptStr &#x3D; AesDecrypt(sn, app_secret)</span><br></pre></td></tr></table></figure>
+
+<p>将加密前的字符串与解密后的字符串做个对比。相同，表示签名验证成功。</p>
+<p>利用python生成随机秘钥：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> base64</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> os</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a = os.urandom(<span class="number">24</span>) </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>base64.b64encode(a)</span><br><span class="line"><span class="string">b&#x27;eUxqsXD/FkNlMR6nIpGvQh8MVlrNTsP4&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="利用MD5做请求签名的例子"><a href="#利用MD5做请求签名的例子" class="headerlink" title="利用MD5做请求签名的例子"></a>利用MD5做请求签名的例子</h3><p>这个请求验证的例子做了以下的请求验证：</p>
+<ol>
+<li>时间戳验证，时间过期或明显不合理的不能通过验证；</li>
+<li>appKey验证，不是注册业务的请求不能通过验证；</li>
+<li>指定时间内收到相同的随机数的请求，不能通过验证，因为有可能是请求被重放了；</li>
+<li>验证签名是否一致，验证请求参数是否被篡改；</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">	<span class="string">&quot;crypto/md5&quot;</span></span><br><span class="line">	<span class="string">&quot;encoding/hex&quot;</span></span><br><span class="line">	<span class="string">&quot;errors&quot;</span></span><br><span class="line">	<span class="string">&quot;strconv&quot;</span></span><br><span class="line">	<span class="string">&quot;math/rand&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> secretKey <span class="keyword">string</span> = <span class="string">&quot;eUxqsXD/FkNlMR6nIpGvQh8MVlrNTsP4&quot;</span> <span class="comment">// 安全规范要求秘钥跟代码要分开存储</span></span><br><span class="line"><span class="keyword">var</span> reqMap <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int64</span>  <span class="comment">// 一般都是放在redis，用expire控制key的存活时间</span></span><br><span class="line"><span class="keyword">var</span> appRegist = <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int</span> &#123;</span><br><span class="line">	<span class="string">&quot;mhxy&quot;</span> : <span class="number">1</span>,</span><br><span class="line">	<span class="string">&quot;lol&quot;</span> : <span class="number">1</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> expireTime <span class="keyword">int64</span> = <span class="number">600</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MD5</span><span class="params">(str <span class="keyword">string</span>)</span> <span class="title">string</span></span> &#123;   </span><br><span class="line">	s := md5.New()   </span><br><span class="line">	s.Write([]<span class="keyword">byte</span>(str))   </span><br><span class="line">	<span class="keyword">return</span> hex.EncodeToString(s.Sum(<span class="literal">nil</span>))   </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 验证签名</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">md5VerifySign</span><span class="params">(c *gin.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	ak := c.Query(<span class="string">&quot;ak&quot;</span>)  <span class="comment">// appKey，业务标记</span></span><br><span class="line">	sn := c.Query(<span class="string">&quot;sn&quot;</span>)  <span class="comment">// sign，签名</span></span><br><span class="line">	ts := c.Query(<span class="string">&quot;ts&quot;</span>)  <span class="comment">// timestamp，时间戳</span></span><br><span class="line">	nonce := c.Query(<span class="string">&quot;nonce&quot;</span>) <span class="comment">// 随机数</span></span><br><span class="line"></span><br><span class="line">	name := c.Query(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">	uid := c.Query(<span class="string">&quot;uid&quot;</span>)</span><br><span class="line">	pay := c.Query(<span class="string">&quot;pay&quot;</span>)</span><br><span class="line"></span><br><span class="line">	now := time.Now().Unix()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 验证appkey是否已注册</span></span><br><span class="line">	<span class="keyword">if</span> _, ok := appRegist[ak]; !ok &#123;</span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">&quot;appkey error&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 验证过期时间</span></span><br><span class="line">	tsInt, _ := strconv.ParseInt(ts, <span class="number">10</span>, <span class="number">64</span>)</span><br><span class="line">	<span class="keyword">if</span> tsInt &gt; now || now - tsInt &gt; expireTime &#123;</span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">&quot;ts error&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//验证随机数是否重复</span></span><br><span class="line">	err := getNonce(uid, nonce)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//验证签名</span></span><br><span class="line">	<span class="comment">// url param需要排序</span></span><br><span class="line">	urlParmString := fmt.Sprintf(<span class="string">&quot;ak=%s&amp;name=%s&amp;nonce=%s&amp;pay=%s&amp;ts=%s&amp;uid=%s&quot;</span>,ak, name, nonce, pay, ts, uid)</span><br><span class="line">	fmt.Println(<span class="string">&quot;urlParmString:&quot;</span>, urlParmString)</span><br><span class="line">	<span class="keyword">if</span> sn == <span class="string">&quot;&quot;</span> || sn != createMd5Sign(urlParmString) &#123;</span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">&quot;sn error&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	setNonce(uid, nonce)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建签名</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">createMd5Sign</span><span class="params">(str <span class="keyword">string</span>)</span> <span class="title">string</span></span> &#123;</span><br><span class="line">	<span class="comment">// 自定义 MD5 组合</span></span><br><span class="line">	<span class="keyword">return</span> MD5(secretKey + str)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">setNonce</span><span class="params">(uid <span class="keyword">string</span>, nonce <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	now := time.Now().Unix()</span><br><span class="line">	c := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int64</span>)</span><br><span class="line">	c[nonce] = now</span><br><span class="line">	<span class="keyword">if</span> _, ok := reqMap[uid]; !ok &#123;</span><br><span class="line">		reqMap[uid] = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int64</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	reqMap[uid] = c</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getNonce</span><span class="params">(uid <span class="keyword">string</span>, nonce <span class="keyword">string</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	now := time.Now().Unix()</span><br><span class="line">	 <span class="keyword">if</span> _, ok := reqMap[uid]; !ok &#123;</span><br><span class="line">		 <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	 &#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> _, ok := reqMap[uid][nonce]; !ok &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> reqMap[uid][nonce] &gt; <span class="number">0</span> &amp;&amp; now - reqMap[uid][nonce] &gt; expireTime &#123;</span><br><span class="line">		<span class="built_in">delete</span>(reqMap[uid], nonce)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> errors.New(<span class="string">&quot;nonce err&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">genSign</span><span class="params">(c *gin.Context)</span> <span class="title">string</span></span> &#123;</span><br><span class="line">	ak := c.Query(<span class="string">&quot;ak&quot;</span>)  <span class="comment">// appKey，业务标记</span></span><br><span class="line">	ts := time.Now().Unix()  <span class="comment">// timestamp，时间戳</span></span><br><span class="line">	nonce := rand.Intn(<span class="number">100</span>) <span class="comment">// 随机数</span></span><br><span class="line"></span><br><span class="line">	name := c.Query(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">	uid := c.Query(<span class="string">&quot;uid&quot;</span>)</span><br><span class="line">	pay := c.Query(<span class="string">&quot;pay&quot;</span>)</span><br><span class="line"></span><br><span class="line">	urlParmString := fmt.Sprintf(<span class="string">&quot;ak=%s&amp;name=%s&amp;nonce=%d&amp;pay=%s&amp;ts=%d&amp;uid=%s&quot;</span>,ak, name, nonce, pay, ts, uid)</span><br><span class="line">	sn := createMd5Sign(urlParmString)</span><br><span class="line">	<span class="keyword">return</span> fmt.Sprintf(<span class="string">&quot;%s&amp;sn=%s&quot;</span>, urlParmString,sn)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	reqMap = <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int64</span>&#123;&#125;</span><br><span class="line">	r := gin.Default()</span><br><span class="line">	r.GET(<span class="string">&quot;/gen_sign&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		sign := genSign(c)</span><br><span class="line">		fmt.Println(<span class="string">&quot;生成签名：&quot;</span>, sign)</span><br><span class="line">		c.String(http.StatusOK, sign)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">    r.GET(<span class="string">&quot;/check_sign&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		err := md5VerifySign(c)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Println(<span class="string">&quot;验证签名失败：&quot;</span>, err)</span><br><span class="line">			c.String(http.StatusOK, fmt.Sprintf(<span class="string">&quot;验证签名失败, 原因：%+v&quot;</span>, err))</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		fmt.Println(<span class="string">&quot;验证签名成功！&quot;</span>)</span><br><span class="line">		c.String(http.StatusOK, <span class="string">&quot;验证签名成功&quot;</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">	r.Run() <span class="comment">//  listen and serve on 0.0.0.0:8080</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="实验过程"><a href="#实验过程" class="headerlink" title="实验过程"></a>实验过程</h3><p>请求gen_sign获得签名和拼接好的url param请求串</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl &quot;http://localhost:8080/gen_sign?ak=mhxy&amp;name=james&amp;pay=100&amp;uid=9988998&quot; </span><br><span class="line">ak=mhxy&amp;name=james&amp;nonce=81&amp;pay=100&amp;ts=1620020732&amp;uid=9988998&amp;sn=48247171223ff1b4739ca300e3b7d32djunshide</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如果我们篡改请求串然后再去请求签名验证，比如pay字段我们改为1000，会提示验证失败，原因是签名对不上失败了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl &quot;http://localhost:8080/check_sign?ak=mhxy&amp;name=james&amp;nonce=81&amp;pay=1000&amp;ts=1620020732&amp;uid=9988998&amp;sn=48247171223ff1b4739ca300e3b7d32d&quot; </span><br><span class="line">验证签名失败, 原因：sn error</span><br></pre></td></tr></table></figure>
+
+
+<p>如果我们不修改请求串，直接请求验证签名，签名验证成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl &quot;http://localhost:8080/check_sign?ak=mhxy&amp;name=james&amp;nonce=81&amp;pay=100&amp;ts=1620020732&amp;uid=9988998&amp;sn=48247171223ff1b4739ca300e3b7d32d&quot; </span><br><span class="line">验证签名成功</span><br></pre></td></tr></table></figure>
+
+<p>我们重放这个请求，提示签名失败，原因是随机数重复了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:web junshili$ curl &quot;http://localhost:8080/check_sign?ak=mhxy&amp;name=james&amp;nonce=81&amp;pay=100&amp;ts=1620020732&amp;uid=9988998&amp;sn=48247171223ff1b4739ca300e3b7d32d&quot; </span><br><span class="line">验证签名失败, 原因：nonce err</span><br></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8A%80%E6%9C%AF/" class="category-chain-item">技术</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/go/" class="print-no-link">#go</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Go快速上手—Web服务器篇</div>
+      <div>http://example.com/2021/05/05/Go快速上手—Web服务器篇/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>May 5, 2021</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%E2%80%94protobuf%E5%92%8CgRPC/" title="Go快速上手—protobuf和gRPC">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Go快速上手—protobuf和gRPC</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/05/04/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%E2%80%94%E5%9F%BA%E6%9C%AC%E8%AF%AD%E8%A8%80%E7%89%B9%E6%80%A7%E7%AF%87/" title="Go快速上手—基本语言特性篇">
+                        <span class="hidden-mobile">Go快速上手—基本语言特性篇</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

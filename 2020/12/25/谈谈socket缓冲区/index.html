@@ -1,0 +1,689 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="每个socket被创建后，无论使用的是TCP协议还是UDP协议，都会创建自己的接收缓冲区和发送缓冲区。当我们调用write()&#x2F;send() 向网络发送数据时，系统并不会 马上向网络传输数据，而是首先将数据拷贝到发送缓冲区，由系统负责择时发送数据。根据我们选用的网络协议以及阻塞模式，系统会有不同的处理。 这些socket缓冲区特性可整理如下：  socket缓冲区在每个套接字中单独存在； sock">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谈谈socket缓冲区">
+<meta property="og:url" content="http://example.com/2020/12/25/%E8%B0%88%E8%B0%88socket%E7%BC%93%E5%86%B2%E5%8C%BA/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="每个socket被创建后，无论使用的是TCP协议还是UDP协议，都会创建自己的接收缓冲区和发送缓冲区。当我们调用write()&#x2F;send() 向网络发送数据时，系统并不会 马上向网络传输数据，而是首先将数据拷贝到发送缓冲区，由系统负责择时发送数据。根据我们选用的网络协议以及阻塞模式，系统会有不同的处理。 这些socket缓冲区特性可整理如下：  socket缓冲区在每个套接字中单独存在； sock">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2020/12/25/%E8%B0%88%E8%B0%88socket%E7%BC%93%E5%86%B2%E5%8C%BA/1.png">
+<meta property="og:image" content="http://example.com/2020/12/25/%E8%B0%88%E8%B0%88socket%E7%BC%93%E5%86%B2%E5%8C%BA/2.png">
+<meta property="article:published_time" content="2020-12-24T16:40:21.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:45.400Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2020/12/25/%E8%B0%88%E8%B0%88socket%E7%BC%93%E5%86%B2%E5%8C%BA/1.png">
+  
+  
+  
+  <title>谈谈socket缓冲区 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="谈谈socket缓冲区"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-12-25 00:40" pubdate>
+          December 25, 2020 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">谈谈socket缓冲区</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>每个socket被创建后，无论使用的是TCP协议还是UDP协议，都会创建自己的接收缓冲区和发送缓冲区。当我们调用write()/send() 向网络发送数据时，系统并不会 马上向网络传输数据，而是首先将数据拷贝到发送缓冲区，由系统负责择时发送数据。根据我们选用的网络协议以及阻塞模式，系统会有不同的处理。</p>
+<p>这些socket缓冲区特性可整理如下：</p>
+<ol>
+<li>socket缓冲区在每个套接字中单独存在；</li>
+<li>socket缓冲区在创建套接字时自动生成；</li>
+<li>即使关闭套接字也会继续传送发送缓冲区中遗留的数据；</li>
+<li>关闭套接字将丢失接收缓冲区中的数据。</li>
+</ol>
+<p><img src="/2020/12/25/%E8%B0%88%E8%B0%88socket%E7%BC%93%E5%86%B2%E5%8C%BA/1.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<h2 id="TCP阻塞和非阻塞模式下的数据发送"><a href="#TCP阻塞和非阻塞模式下的数据发送" class="headerlink" title="TCP阻塞和非阻塞模式下的数据发送"></a>TCP阻塞和非阻塞模式下的数据发送</h2><ol>
+<li>阻塞模式下，调用write()/send()后程序将阻塞，如果发送缓冲区的可用长度大于待发送的数据，则数据将全部被拷贝到发送缓冲区，等待系统将发送缓冲区内的数据发送出去，当数据全部被拷贝到发送缓冲区后阻塞状态将消失；如果发送缓冲区的长度小于待发送的数据长度，则数据能拷贝多少就先拷贝多少（分批拷贝），一直等待直到数据可以全部被拷贝到发送缓冲区为止才可调用返回。write()/send()调用返回后并不能保证数据已经发送到对方缓冲区了，只能保证数据成功拷贝到发送缓冲区了，至于传输可靠性方面那就是由系统的协议栈来保证。</li>
+<li>非阻塞模式下，调用write()/send()后，如果发送缓冲区剩余大小大于待发送的数据大小，那数据将完整拷贝到发送缓冲区，如果发送缓冲区剩余大小小于待发送的数据大小，那本次write()/send()则为尽可能拷贝，有多少空间就拷贝多少数据，返回值为均为成功拷贝到发送缓冲区的数据长度。</li>
+<li>当接收端不接收数据，或者处理速率比发送方的发送速率低导致其接收缓冲区已满（接收窗口win=0），进而导致数据发送方的发送缓冲区的数据不断堆积进而缓冲区满，此时我们再调用write()/send()都将阻塞等待。</li>
+<li>系统将发送缓冲区的数据通过网卡发到网络了，系统也不会立即将刚发送的数据从缓冲区中移除，只有当接收方回复了ack，我们才能认为对方收到了我们发送的信息，否则刚发送的数据必须还保留在发送缓冲区等待重传。当系统收到接收方对刚发送数据的ack后，才会移除发送缓冲区内对应的数据，腾出空间。</li>
+<li>当启用了Nagle算法后，数据会倾向于堆积到一定大小或超时后才真正往网络发送数据，因此启用Nagle算法后的发送缓冲区更容易发生数据堆积。</li>
+<li>因为发送缓冲区满导致write()/send()一直无法返回，这个可以通过setsockopt的参数 SO_SNDTIMEO来做超时处理，如果有数据成功拷贝到发送缓冲区，那超时后的返回值是成功拷贝到发送缓冲区的数据长度，如果没有数据拷贝成功，此时的超时后返回值为-1，errno为EAGAIN 或 EWOULDBLOCK，表现就是跟非阻塞模式的write()/send()是一样的。如果不设置默认就是永不超时。</li>
+<li>socket关闭时，但发送缓冲区中的数据仍未完全成功发送出去，那么这些数据将由系统负责把数据可靠地发送给对方。</li>
+</ol>
+<h2 id="TCP阻塞和非阻塞模式下的数据接收"><a href="#TCP阻塞和非阻塞模式下的数据接收" class="headerlink" title="TCP阻塞和非阻塞模式下的数据接收"></a>TCP阻塞和非阻塞模式下的数据接收</h2><ol>
+<li>调用read()/recv()时，如果模式选择的是阻塞模式，那么当接收缓冲区没数据时，程序就会一直拥塞等待，直到有数据可读为止，每次读的数据大小由进程控制，一般都需要分批读取，read()/recv()成功返回时的返回值是成功读取到的数据的长度；如果模式选择的是非阻塞模式，那么程序调用read()/recv()调用返回的返回值是成功读取的字节数，如果没数据可读时同样是马上返回，此时的返回值为0。</li>
+<li>当程序并没有及时读取接收缓冲区中的数据，那缓冲区可利用的空间逐渐变小，直到缓冲区满，但TCP套接口接收缓冲区不可能溢出。这是因为TCP有流量控制策略，根据TCP的流量控制中滑动窗口机制，接收方会捎到窗口大小给发送方，如果缓冲区空间为0发送方也能及时知道停止发送。</li>
+<li>当socket关闭时，如果接收缓冲区还有数据没读取，那么这部分数据将被丢弃。</li>
+<li>跟TCP阻塞写相同，我们可以通过setsockopt的参数 SO_SNDTIMEO来对阻塞模式的读做超时处理，如果一段时间内没有数据读取成功，此时的超时后返回值为-1，errno为EAGAIN 或 EWOULDBLOCK。</li>
+<li>recv的第四个参数若为MSG_WAITALL，则在阻塞模式下不等到指定数目的数据不会返回，除非超时时间到。当然如果对方关闭了，即使超时时间未到，recv 也返回0。</li>
+</ol>
+<h2 id="UDP阻塞和非阻塞下的数据发送接收"><a href="#UDP阻塞和非阻塞下的数据发送接收" class="headerlink" title="UDP阻塞和非阻塞下的数据发送接收"></a>UDP阻塞和非阻塞下的数据发送接收</h2><ol>
+<li>UDP套接口有发送缓冲区大小（SO_SNDBUF修改），不过它仅仅是写到套接口的UDP数据报的大小上限，即UDP没有发送缓冲区。如果一个应用程序写一个大于套接口发送缓冲区大小的数据报，内核将返回EMSGSIZE错误。</li>
+<li>从UDP套接口write成功返回仅仅表示用户写入的数据报或者所有片段已经加入到数据链路层的输出队列。如果该队列没有足够的空间存放该数据包或者它的某个片段，内核通常返回给应用进程一个ENOBUFS错误。</li>
+<li>UDP是没有流量控制的：较快的发送端可以很容易淹没较慢的接收端，当接收缓冲区满后，后面收到的数据报都将丢弃。</li>
+<li>UDP存在丢包的可能：调用recvfrom方法接收到数据后，处理数据花费时间太长，再次调用recvfrom，两次调用间隔里，发过来的包可能丢失。处理方法是调大接收缓冲区或者通过将接收到数据存入一个缓冲区，并迅速返回继续recvfrom。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">UDP socket 设置为的非阻塞模式 </span><br><span class="line">Len &#x3D; recvfrom(SocketFD, szRecvBuf, sizeof(szRecvBuf), MSG_DONTWAIT, (struct sockaddr *)&amp;SockAddr,&amp;ScokAddrLen);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">UDP socket 设置为的阻塞模式 </span><br><span class="line">Len &#x3D; recvfrom(SocketFD, szRecvBuf, sizeof(szRecvBuf), 0, (struct sockaddr *)&amp;SockAddr,&amp;ScokAddrLen);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="阻塞、非阻塞的本质"><a href="#阻塞、非阻塞的本质" class="headerlink" title="阻塞、非阻塞的本质"></a>阻塞、非阻塞的本质</h2><p><img src="/2020/12/25/%E8%B0%88%E8%B0%88socket%E7%BC%93%E5%86%B2%E5%8C%BA/2.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>阻塞：阻塞的本质是，进程因为资源等待而主动让出CPU，进程从运行队列删除，幷加入到等待队列，然后等待资源。等超时或数据资源到来则唤醒进程继续执行，若有数据可读那就把数据拷贝给进程，无数据可读但超时了则返回进程继续执行后面的逻辑。</p>
+<p>非阻塞：本质是应用进程掌控读取数据的节奏，通过轮训的方式查询数据是否可读，进程始终占用着CPU，能比较好地满足高性能进程需求，执行效率高（数据没到位，进程可以继续处理其他业务，无需阻塞其他业务进行）。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8A%80%E6%9C%AF/" class="category-chain-item">技术</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/linux/" class="print-no-link">#linux</a>
+      
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="print-no-link">#计算机网络</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>谈谈socket缓冲区</div>
+      <div>http://example.com/2020/12/25/谈谈socket缓冲区/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>December 25, 2020</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/12/28/%E4%BB%8Esocket%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E9%94%99%E8%AF%AF%E7%A0%81%E5%88%86%E6%9E%90%E7%BD%91%E7%BB%9C%E5%BC%82%E5%B8%B8/" title="从socket系统调用错误码分析网络异常">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">从socket系统调用错误码分析网络异常</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/12/18/%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/" title="网络性能优化策略">
+                        <span class="hidden-mobile">网络性能优化策略</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

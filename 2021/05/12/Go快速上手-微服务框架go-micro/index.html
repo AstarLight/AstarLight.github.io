@@ -1,0 +1,837 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="go-micro特性Go Micro是一个流行的微服务架构，是一个插件化的基础框架，基于此可以构建微服务，Micro的设计哲学是可插拔的插件化架构。Go Micro 简单轻巧、易于上手、功能强大、扩展方便，是基于 Go 语言进行微服务架构时非常值得推荐的一个框架。 Go Micro有以下重要特性：  服务发现：自动服务注册和名称解析。服务发现是微服务开发的核心。 负载均衡：基于服务发现构建的客户端">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go快速上手--微服务框架go-micro">
+<meta property="og:url" content="http://example.com/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="go-micro特性Go Micro是一个流行的微服务架构，是一个插件化的基础框架，基于此可以构建微服务，Micro的设计哲学是可插拔的插件化架构。Go Micro 简单轻巧、易于上手、功能强大、扩展方便，是基于 Go 语言进行微服务架构时非常值得推荐的一个框架。 Go Micro有以下重要特性：  服务发现：自动服务注册和名称解析。服务发现是微服务开发的核心。 负载均衡：基于服务发现构建的客户端">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/2.png">
+<meta property="og:image" content="http://example.com/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/3.png">
+<meta property="og:image" content="http://example.com/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/4.png">
+<meta property="og:image" content="http://example.com/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/5.png">
+<meta property="article:published_time" content="2021-05-12T15:20:40.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:44.194Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="go">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/2.png">
+  
+  
+  
+  <title>Go快速上手--微服务框架go-micro - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Go快速上手--微服务框架go-micro"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-05-12 23:20" pubdate>
+          May 12, 2021 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.8k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          49 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Go快速上手--微服务框架go-micro</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="go-micro特性"><a href="#go-micro特性" class="headerlink" title="go-micro特性"></a>go-micro特性</h2><p>Go Micro是一个流行的微服务架构，是一个插件化的基础框架，基于此可以构建微服务，Micro的设计哲学是可插拔的插件化架构。Go Micro 简单轻巧、易于上手、功能强大、扩展方便，是基于 Go 语言进行微服务架构时非常值得推荐的一个框架。</p>
+<p>Go Micro有以下重要特性：</p>
+<ul>
+<li>服务发现：自动服务注册和名称解析。服务发现是微服务开发的核心。</li>
+<li>负载均衡：基于服务发现构建的客户端负载均衡。一旦我们获得了服务的任意数量实例的地址，我们现在需要一种方法来决定要路由到哪个节点。</li>
+<li>消息编码：基于内容类型的动态消息编码。这包括默认的protobuf和json。</li>
+<li>请求/响应：基于RPC的请求/响应，支持双向流。</li>
+<li>Async Messaging：PubSub是异步通信和事件驱动架构的重要设计思想。事件通知是微服务开发的核心模式。</li>
+<li>可插拔接口：Go Micro为每个分布式系统抽象使用Go接口，因此，这些接口是可插拔的，并允许Go Micro与运行时无关，可以插入任何基础技术</li>
+</ul>
+<p><img src="/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/2.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<h2 id="go-micro通信流程"><a href="#go-micro通信流程" class="headerlink" title="go-micro通信流程"></a>go-micro通信流程</h2><p>通信的角色一共4个：server,client,register和broker，他们的各种的作用在于：</p>
+<ol>
+<li>Server监听客户端的调用，和Broker推送过来的信息进行处理。并且Server端需要向Register注册自己的存在或消亡，这样Client才能知道自己的状态；</li>
+<li>Register服务的注册的发现，Client端从Register中得到Server的信息，然后每次调用都根据算法选择一个的Server进行通信，当然通信是要经过编码/解码，选择传输协议等一系列过程；</li>
+<li>如果有需要通知所有的Server端可以使用Broker进行信息的推送，Broker 通过队列进行信息的接收和发布；</li>
+</ol>
+<p><img src="/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/3.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>Go Micro 框架的基础架构如上图所示，由 8 个核心接口组成，每个接口都有默认实现。Go micro 由以下接口列表组成:</p>
+<ul>
+<li>最顶层的 Service 接口是构建服务的主要组件，它把底层的各个包需要实现的接口，做了一次封装，包含了一系列用于初始化 Service 和 Client 的方法，使我们可以很简单的创建一个 RPC 服务；</li>
+<li>server - 用于处理请求和通知。服务器是编写服务的构建基块，内置服务器是 RPC 系统</li>
+<li>client - 用于高级别请求/响应和通知；</li>
+<li>broker - 异步消息传递，其实就是一个消息队列系统；</li>
+<li>config - 用于动态配置的。配置是一个接口, 用于从任意数量的源进行动态配置加载，其实就是一个配置进程/中心；</li>
+<li>codec - 用于消息编码的（序列化和反序列化）。编解码器用于编码和解码消息, 然后再通过导线传输消息. 数据可能是 json, protobuf, beson, msgpack 等。</li>
+<li>registry - 服务发现的注册表。注册表提供一种服务发现机制, 用于将名称解析为地址. 它可以由 consul, etcd zookeeper, dns, gossip 等支持. 服务应在启动时使用注册表进行注册, 并在关闭时取消注册。</li>
+<li>selector - 用于负载平衡。选择器是一个负载平衡抽象, 它建立在注册表上。 户在发出请求时利用选择器. 客户端将使用选择器而不是注册表, 因为它提供了内置的负载平衡机制.</li>
+<li>store - 用于数据存储。存储是一个简单的键值存储接口, 用于抽象掉轻量级数据存储，仅用于保存简单的状态信息，比如用户的验证状态。</li>
+<li>transport - 用于同步通信。传输是服务之间同步请求/响应通信的接口. 它类似于 golang 网络包, 但提供了一个更高级别的抽象, 允许我们切换通信机制</li>
+</ul>
+<p><img src="/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/4.png" srcset="/img/loading.gif" lazyload alt="image"> </p>
+<p>Go Micro的接口间的关系如上图所示，每个接口都支持业界流行的开源方案，具体如下：</p>
+<p><img src="/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6go-micro/5.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>go-micro最重要的是service的创建，因为go-micro现在发布了v3版本，V2版本作者表示已经不再维护了，因此这里介绍V2和V3版本的go micro 如何创建一个服务，以及基本的服务管理指令。我们生产环境用的是V2版本，至于V3，看了下网上的资源以及项目中相关的特性介绍，感觉还是处于很初级的状态，如果直接用于生产环境感觉坑会不少，但是本着学习的目的还是想实践一下这个V3版本。另外，go micro的broker机制我们也给了实践例子，体验了go micro异步消息通信机制。</p>
+<h2 id="新建服务（基于micro-v2）"><a href="#新建服务（基于micro-v2）" class="headerlink" title="新建服务（基于micro v2）"></a>新建服务（基于micro v2）</h2><p>先安装相关组件</p>
+<ol>
+<li>go get github.com/micro/micro/v3/cmd/protoc-gen-micro@master</li>
+<li>go get github.com/micro/micro/v2</li>
+</ol>
+<p>我们先定义一个简单的protobuf协议文件greet.proto，定义的服务名称为Greet。</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">&quot;proto3&quot;</span>; <span class="comment">// 指定proto版本</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 指定golang包名</span></span><br><span class="line"><span class="keyword">option</span> go_package = <span class="string">&quot;pb/proto_demo&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">Greeter</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> Greet(Request) <span class="keyword">returns</span> (Response) </span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">message</span> <span class="title">Request</span> </span>&#123;</span><br><span class="line">    <span class="built_in">string</span> name = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">message</span> <span class="title">Response</span> </span>&#123;</span><br><span class="line">    <span class="built_in">string</span> msg = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>安装之后，利用protoc-gen-go和protoc-gen-micro生成协议go文件。这次一共会生成两个协议文件：greet.pb.go和greet.pb.micro.go。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">protoc --micro_out&#x3D;. --go_out&#x3D;. .&#x2F;greet.proto</span><br></pre></td></tr></table></figure>
+
+<p>着重观察下生成的micro版的go协议文件greet.pb.micro.go</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code generated by protoc-gen-micro. DO NOT EDIT.</span></span><br><span class="line"><span class="comment">// source: greet.proto</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> proto_demo</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	fmt <span class="string">&quot;fmt&quot;</span></span><br><span class="line">	proto <span class="string">&quot;github.com/golang/protobuf/proto&quot;</span></span><br><span class="line">	math <span class="string">&quot;math&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	context <span class="string">&quot;context&quot;</span></span><br><span class="line">	client <span class="string">&quot;github.com/micro/go-micro/v2/client&quot;</span></span><br><span class="line"> 	server <span class="string">&quot;github.com/micro/go-micro/v2/server&quot;</span></span><br><span class="line">	api <span class="string">&quot;github.com/micro/micro/v3/service/api&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Reference imports to suppress errors if they are not otherwise used.</span></span><br><span class="line"><span class="keyword">var</span> _ = proto.Marshal</span><br><span class="line"><span class="keyword">var</span> _ = fmt.Errorf</span><br><span class="line"><span class="keyword">var</span> _ = math.Inf</span><br><span class="line"></span><br><span class="line"><span class="comment">// This is a compile-time assertion to ensure that this generated file</span></span><br><span class="line"><span class="comment">// is compatible with the proto package it is being compiled against.</span></span><br><span class="line"><span class="comment">// A compilation error at this line likely means your copy of the</span></span><br><span class="line"><span class="comment">// proto package needs to be updated.</span></span><br><span class="line"><span class="keyword">const</span> _ = proto.ProtoPackageIsVersion3 <span class="comment">// please upgrade the proto package</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Reference imports to suppress errors if they are not otherwise used.</span></span><br><span class="line"><span class="keyword">var</span> _ api.Endpoint</span><br><span class="line"><span class="keyword">var</span> _ context.Context</span><br><span class="line"><span class="keyword">var</span> _ client.Option</span><br><span class="line"><span class="keyword">var</span> _ server.Option</span><br><span class="line"></span><br><span class="line"><span class="comment">// Api Endpoints for Greeter service</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewGreeterEndpoints</span><span class="params">()</span> []*<span class="title">api</span>.<span class="title">Endpoint</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> []*api.Endpoint&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Client API for Greeter service</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> GreeterService <span class="keyword">interface</span> &#123;</span><br><span class="line">	Greet(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> greeterService <span class="keyword">struct</span> &#123;</span><br><span class="line">	c    client.Client</span><br><span class="line">	name <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewGreeterService</span><span class="params">(name <span class="keyword">string</span>, c client.Client)</span> <span class="title">GreeterService</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;greeterService&#123;</span><br><span class="line">		c:    c,</span><br><span class="line">		name: name,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *greeterService)</span> <span class="title">Greet</span><span class="params">(ctx context.Context, in *Request, opts ...client.CallOption)</span> <span class="params">(*Response, error)</span></span> &#123;</span><br><span class="line">	req := c.c.NewRequest(c.name, <span class="string">&quot;Greeter.Greet&quot;</span>, in)</span><br><span class="line">	out := <span class="built_in">new</span>(Response)</span><br><span class="line">	err := c.c.Call(ctx, req, out, opts...)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> out, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Server API for Greeter service</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> GreeterHandler <span class="keyword">interface</span> &#123;</span><br><span class="line">	Greet(context.Context, *Request, *Response) error</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RegisterGreeterHandler</span><span class="params">(s server.Server, hdlr GreeterHandler, opts ...server.HandlerOption)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">type</span> greeter <span class="keyword">interface</span> &#123;</span><br><span class="line">		Greet(ctx context.Context, in *Request, out *Response) error</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">type</span> Greeter <span class="keyword">struct</span> &#123;</span><br><span class="line">		greeter</span><br><span class="line">	&#125;</span><br><span class="line">	h := &amp;greeterHandler&#123;hdlr&#125;</span><br><span class="line">	<span class="keyword">return</span> s.Handle(s.NewHandler(&amp;Greeter&#123;h&#125;, opts...))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> greeterHandler <span class="keyword">struct</span> &#123;</span><br><span class="line">	GreeterHandler</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *greeterHandler)</span> <span class="title">Greet</span><span class="params">(ctx context.Context, in *Request, out *Response)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> h.GreeterHandler.Greet(ctx, in, out)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这个文件里定义了服务结构体GreeterService，RPC函数实现Greet。</p>
+<p>现在先编写服务端代码micro_server/main.go</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;context&quot;</span></span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line"></span><br><span class="line">    micro <span class="string">&quot;github.com/micro/go-micro/v2&quot;</span></span><br><span class="line">    proto <span class="string">&quot;web_demo/proto/pb/proto_demo&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Greeter <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(g *Greeter)</span> <span class="title">Greet</span><span class="params">(ctx context.Context, req *proto.Request, rsp *proto.Response)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	rsp.Msg = <span class="string">&quot;Greet &quot;</span> + req.Name</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 创建一个新服务</span></span><br><span class="line">    service := micro.NewService(</span><br><span class="line">        micro.Name(<span class="string">&quot;greeter&quot;</span>),</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 服务初始化</span></span><br><span class="line">    service.Init()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册 handler处理函数</span></span><br><span class="line">    proto.RegisterGreeterHandler(service.Server(), <span class="built_in">new</span>(Greeter))</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 启动服务</span></span><br><span class="line">    <span class="keyword">if</span> err := service.Run(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        fmt.Println(err)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编写客户端micro_client/main.go，客户端向服务器发起RPC调用。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;context&quot;</span></span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line"></span><br><span class="line">    micro <span class="string">&quot;github.com/micro/go-micro/v2&quot;</span></span><br><span class="line">    proto  <span class="string">&quot;web_demo/proto/pb/proto_demo&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 创建新服务</span></span><br><span class="line">    service := micro.NewService(micro.Name(<span class="string">&quot;greeter.client&quot;</span>))</span><br><span class="line">    <span class="comment">// 服务初始化</span></span><br><span class="line">    service.Init()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建RPC的客户端实例</span></span><br><span class="line">    greeter := proto.NewGreeterService(<span class="string">&quot;greeter&quot;</span>, service.Client())</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 发起RPC调用</span></span><br><span class="line">    rsp, err := greeter.Greet(context.TODO(), &amp;proto.Request&#123;Name: <span class="string">&quot;John&quot;</span>&#125;)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        fmt.Println(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 打印返回值</span></span><br><span class="line">    fmt.Println(rsp.Msg)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先启动server</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">unshideMacBook-Pro:micro_server junshili$ go run main.go </span><br><span class="line">2021-05-07 00:50:11  file&#x3D;v2@v2.9.1&#x2F;service.go:200 level&#x3D;info Starting [service] greeter</span><br><span class="line">2021-05-07 00:50:11  file&#x3D;grpc&#x2F;grpc.go:864 level&#x3D;info Server [grpc] Listening on [::]:56014</span><br><span class="line">2021-05-07 00:50:11  file&#x3D;grpc&#x2F;grpc.go:697 level&#x3D;info Registry [mdns] Registering node: greeter-147bbaba-7f7e-46af-bb5e-81d311da0d1a</span><br></pre></td></tr></table></figure>
+
+<p>当然，我们也可以指定端口启动服务，这个参数传入的端口是优先于代码设置的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go run main.go --server_address :8088</span><br></pre></td></tr></table></figure>
+
+<p>我们可以从服务器启动时打印的这些日志得到一些信息：</p>
+<ol>
+<li>RPC通信框架用的是gRPC，这是go-mico默认的；</li>
+<li>我们启动的这个服务的名字叫greeter;</li>
+<li>服务监听的端口是56014;</li>
+<li>服务发现用的组件是mdns，这是go-mirco默认的;</li>
+</ol>
+<p>我们也可以指定端口号来启动服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:micro_server junshili$ go run main.go --server_address :8088</span><br><span class="line">2021-05-07 01:38:25  file&#x3D;v2@v2.9.1&#x2F;service.go:200 level&#x3D;info Starting [service] greeter</span><br><span class="line">2021-05-07 01:38:25  file&#x3D;grpc&#x2F;grpc.go:864 level&#x3D;info Server [grpc] Listening on [::]:8088</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>再启动client发起RPC调用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:micro_client junshili$ go run main.go </span><br><span class="line">Greet John</span><br></pre></td></tr></table></figure>
+
+<p>当我kill掉server时，会打印以下日志，表明：1.服务从服务发现组件注销注册了；2.Broker和该服务断开了连接。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">2021-05-07 01:32:38  file&#x3D;grpc&#x2F;grpc.go:791 level&#x3D;info Deregistering node: greeter-5e32cdd2-4099-4ee9-b2df-bdeee2cd5ff4</span><br><span class="line">2021-05-07 01:32:38  file&#x3D;grpc&#x2F;grpc.go:959 level&#x3D;info Broker [http] Disconnected from 127.0.0.1:0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>注意，使用micro/v2时,protoc3生成micro.protoc文件可能会导致版本冲突，在go run main.go时会报错：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">使用micro&#x2F;v2时,protoc3生成micro.protoc文件导致的版本冲突</span><br><span class="line">cannot use service.Server() (type</span><br><span class="line">“github.com&#x2F;micro&#x2F;go-micro&#x2F;v2&#x2F;server”.Server) as type</span><br><span class="line">“github.com&#x2F;micro&#x2F;micro&#x2F;v3&#x2F;service&#x2F;server”</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>解决方案：<br>可将生成的*.pb.micro.go文件中的v3依赖改为v2依赖即可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">import ( 	</span><br><span class="line"> 	context &quot;context&quot; 	</span><br><span class="line">	client &quot;github.com&#x2F;micro&#x2F;go-micro&#x2F;v2&#x2F;client&quot;</span><br><span class="line"> 	server &quot;github.com&#x2F;micro&#x2F;go-micro&#x2F;v2&#x2F;server&quot;</span><br><span class="line">	api &quot;github.com&#x2F;micro&#x2F;micro&#x2F;v3&#x2F;service&#x2F;api&quot; </span><br><span class="line"> )</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="新建服务-基于micro-v3"><a href="#新建服务-基于micro-v3" class="headerlink" title="新建服务 (基于micro v3)"></a>新建服务 (基于micro v3)</h2><p>现在go micro已经推出了V3版本，因为V3和V2版本有较多的不同，且存在兼容性不足的问题。下面的所有例子都是基于V3的实践。</p>
+<p>首先给出官方的上手文档:<a target="_blank" rel="noopener" href="https://micro.mu/getting-started">https://micro.mu/getting-started</a></p>
+<p>首先安装/升级自己的micro版本至V3</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get github.com&#x2F;micro&#x2F;micro&#x2F;v3</span><br></pre></td></tr></table></figure>
+
+<p>安装完之后，启动micro相关的服务进程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:~ junshili$ micro server</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:86 level&#x3D;info Starting server</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering network</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering runtime</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering registry</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering config</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering store</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering broker</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering events</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering auth</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering proxy</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:114 level&#x3D;info Registering api</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;server&#x2F;server.go:201 level&#x3D;info Starting server runtime</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;service&#x2F;service.go:195 level&#x3D;info Starting [service] server</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;grpc&#x2F;grpc.go:939 level&#x3D;info Server [grpc] Listening on [::]:10001</span><br><span class="line">2021-05-09 00:32:01  file&#x3D;grpc&#x2F;grpc.go:769 level&#x3D;info Registry [mdns] Registering node: server-fc07e464-99c4-406d-b608-b54ef3c9bdde</span><br></pre></td></tr></table></figure>
+<p>可以注意到，registry,auth等Micro组件都启动起来了。与V2版本不一样的是，接下来需要登录账号，做身份验证。这一步很重要，不然没有登录，后续操作micro会提示权限不足。username固定为admin,password固定为micro。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ micro login</span><br><span class="line">Enter username: admin</span><br><span class="line">Enter password:</span><br><span class="line">Successfully logged in.</span><br></pre></td></tr></table></figure>
+
+<p>查看micro框架下跑着哪些服务，可以看到这些服务都是micro框架自带的，在我们执行micro server时启动。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:~ junshili$ micro services</span><br><span class="line">api</span><br><span class="line">auth</span><br><span class="line">broker</span><br><span class="line">config</span><br><span class="line">events</span><br><span class="line">network</span><br><span class="line">proxy</span><br><span class="line">registry</span><br><span class="line">runtime</span><br><span class="line">server</span><br><span class="line">store</span><br></pre></td></tr></table></figure>
+
+<p>现在我们打算启动一个自己的服务，micro v3提供了一个非常好用的服务生成工具，可以帮我们直接生成服务模板，我们只需要在模板上增添自己的内容就可以了，生产效率大幅提升。使用<strong>micro new 服务名</strong>就可以生成模板代码。<strong>服务名不要使用下划线</strong>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:~ junshili$ micro new hellodemo</span><br><span class="line">Creating service hellodemo</span><br><span class="line"></span><br><span class="line">.</span><br><span class="line">├── micro.mu</span><br><span class="line">├── main.go</span><br><span class="line">├── generate.go</span><br><span class="line">├── handler</span><br><span class="line">│   └── hellodemo.go</span><br><span class="line">├── proto</span><br><span class="line">│   └── hellodemo.proto</span><br><span class="line">├── Dockerfile</span><br><span class="line">├── Makefile</span><br><span class="line">├── README.md</span><br><span class="line">├── .gitignore</span><br><span class="line">└── go.mod</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>进入项目目录，编译协议</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:hellodemo junshili$ make proto</span><br><span class="line">protoc --proto_path&#x3D;. --micro_out&#x3D;. --go_out&#x3D;:. proto&#x2F;hellodemo.proto</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在proto目录下自动生成了<em>pb.go和</em>.pb.micro.go的文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">..&#x2F;hellodemo&#x2F;</span><br><span class="line">├── Dockerfile</span><br><span class="line">├── Makefile</span><br><span class="line">├── README.md</span><br><span class="line">├── generate.go</span><br><span class="line">├── go.mod</span><br><span class="line">├── handler</span><br><span class="line">│   └── hellodemo.go</span><br><span class="line">├── main.go</span><br><span class="line">├── micro.mu</span><br><span class="line">└── proto</span><br><span class="line">    ├── hellodemo.pb.go</span><br><span class="line">    ├── hellodemo.pb.micro.go</span><br><span class="line">    └── hellodemo.proto</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>启动我们的服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:hellodemo junshili$ micro run .</span><br></pre></td></tr></table></figure>
+
+<p>查看我们的服务是否正常启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:hellodemo junshili$ micro services</span><br><span class="line">api</span><br><span class="line">auth</span><br><span class="line">broker</span><br><span class="line">config</span><br><span class="line">events</span><br><span class="line">hellodemo</span><br><span class="line">network</span><br><span class="line">proxy</span><br><span class="line">registry</span><br><span class="line">runtime</span><br><span class="line">server</span><br><span class="line">store</span><br><span class="line"></span><br><span class="line">junshideMacBook-Pro:hellodemo junshili$ micro status</span><br><span class="line">NAME		VERSION	SOURCE				STATUS	BUILD	UPDATED		METADATA</span><br><span class="line">hellodemo	latest	&#x2F;Users&#x2F;junshili&#x2F;hellodemo	running	n&#x2F;a	1m58s ago	owner&#x3D;admin, group&#x3D;micro</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，我们的服务正常运行在micro框架之内。现在我们要基于这个服务模板做点自己的修改。</p>
+<p>现在协议文件上增加rpc 函数和消息结构体。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">service Hellodemo &#123;</span><br><span class="line">	rpc Call(Request) returns (Response) &#123;&#125;</span><br><span class="line">	rpc Stream(StreamingRequest) returns (stream StreamingResponse) &#123;&#125;</span><br><span class="line">	rpc PingPong(stream Ping) returns (stream Pong) &#123;&#125;</span><br><span class="line">	rpc Greet(GreetReq) returns (GreetRsp) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message GreetReq &#123;</span><br><span class="line">	string name &#x3D; 1;</span><br><span class="line">	int32 age &#x3D; 2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message GreetRsp &#123;</span><br><span class="line">	string msg &#x3D; 1;</span><br><span class="line">	int32 status &#x3D; 2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>再到在handler/hellodemo.go这个文件里，加一个自己的Greet的实现。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(e *Hellodemo)</span> <span class="title">Greet</span><span class="params">(ctx context.Context, req *hellodemo.GreetReq, rsp *hellodemo.GreetRsp)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	log.Info(<span class="string">&quot;Received Hellodemo.Greet request&quot;</span>)</span><br><span class="line">	rsp.Msg = fmt.Sprintf(<span class="string">&quot;Greet %s, your age is %d&quot;</span>, req.Name, req.Age) </span><br><span class="line">	rsp.Status = <span class="number">200</span></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们的功能代码已经完成编写，准备把服务更新一下，因为服务已经在run了，所以我们直接使用<code>micro update .</code>把服务更出去，类似于我们常用的热更，不停服更新。<br>然后用<code>micro logs hellodemo</code>看下输出日志是否正常。确认启动正常后，我们可以使用micro框架cli给该服务直接发送请求，测试服务可用性，而无须再写测试client。</p>
+<p>先用help指令查看hellodemo对外提供了哪些可调用的方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:hellodemo junshili$ micro  hellodemo  --help</span><br><span class="line">NAME:</span><br><span class="line">	micro hellodemo</span><br><span class="line"></span><br><span class="line">VERSION:</span><br><span class="line">	latest</span><br><span class="line"></span><br><span class="line">USAGE:</span><br><span class="line">	micro hellodemo [command]</span><br><span class="line"></span><br><span class="line">COMMANDS:</span><br><span class="line">	call</span><br><span class="line">	greet</span><br><span class="line">	pingPong</span><br><span class="line">	stream</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们测试下call和greet方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:hellodemo junshili$ micro  hellodemo  call  --name&#x3D;James</span><br><span class="line">&#123;</span><br><span class="line">	&quot;msg&quot;: &quot;Hello James&quot;</span><br><span class="line">&#125;</span><br><span class="line">junshideMacBook-Pro:hellodemo junshili$ micro  hellodemo  greet --name&#x3D;James --age&#x3D;20</span><br><span class="line">&#123;</span><br><span class="line">	&quot;msg&quot;: &quot;Greet James, your age is 20&quot;,</span><br><span class="line">	&quot;status&quot;: 200</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们同样可以通过http的方式访问请求RPC，中介是micro的api服务，请求会通过api服务，再调到我们制定的服务。默认API的address是127.0.0.1:8080。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:helloworld junshili$ curl -XPOST --header &quot;Content-Type: application&#x2F;json&quot; -d &#39;&#123;&quot;name&quot;:&quot;Joe&quot;, &quot;age&quot;:30&#125;&#39; http:&#x2F;&#x2F;127.0.0.1:8080&#x2F;hellodemo&#x2F;greet</span><br><span class="line">&#123;&quot;msg&quot;:&quot;Greet Joe, your age is 30&quot;,&quot;status&quot;:200&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="搭建Http服务"><a href="#搭建Http服务" class="headerlink" title="搭建Http服务"></a>搭建Http服务</h2><p>上面介绍了搭建RPC服务的流程，如果要搭建HTTP服务，其实跟上面流程一样，区别只在于在main.go中调用http相关相关处理即可，比如我们使用gin来实现我们的http服务。</p>
+<p>第一步先micro new helloweb，创建服务模板，然后我们之间在main.go添加http处理的相关代码：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line"></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HelloWeb</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	c.String(http.StatusOK, <span class="string">&quot;Hello, Go\n&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HiWeb</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	c.String(http.StatusOK, <span class="string">&quot;Hi, Go\n&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 使用gin作为路由</span></span><br><span class="line">	r := gin.Default()</span><br><span class="line">	r.GET(<span class="string">&quot;/hello&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		HelloWeb(c)</span><br><span class="line">	&#125;)</span><br><span class="line">	r.POST(<span class="string">&quot;/hi&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		HiWeb(c)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	r.Run(<span class="string">&quot;:9999&quot;</span>) <span class="comment">//  listen and serve on 0.0.0.0:9999</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>请求和响应如下，如果想要构建更复杂的http项目，请参考我的上一篇文章:<a target="_blank" rel="noopener" href="https://astarlight.github.io/2021/05/05/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%E2%80%94Web%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AF%87/">Go快速上手—Web服务器篇.</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">junshideMacBook-Pro:blog junshili$ curl -X POST http:&#x2F;&#x2F;127.0.0.1:9999&#x2F;hi</span><br><span class="line">Hi, Go</span><br><span class="line">junshideMacBook-Pro:blog junshili$ curl http:&#x2F;&#x2F;127.0.0.1:9999&#x2F;hello</span><br><span class="line">Hello, Go</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>需要kill掉这个服务，需要使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">micro kill example</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h2 id="发布订阅-基于消息队列的异步通信"><a href="#发布订阅-基于消息队列的异步通信" class="headerlink" title="发布订阅(基于消息队列的异步通信)"></a>发布订阅(基于消息队列的异步通信)</h2><p>发布订阅模式在后台服务中广泛使用，go micro框架中，Broker服务就是用于支持发布订阅模式（pub/sub）。发布订阅模式，我们一般使用消息队列作为中间件实现异步通信，从而做到系统解耦、削峰稳流。在go micro框架中，Broker就是负责消息队列这个功能，消息生产者负责生产消息，推送给Broker，消息消费者server向Broker订阅指定类型的消息（我们称为topic），即Broker注册自己的消息处理，一旦有消息到来，则调用响应的消息处理逻辑。Micro的Broker默认使用了Nats作为消息队列，同时他也支持业界常用的消息队列，比如Kafka,RabbitMQ等，因此我们可以根据我们的需求选择消息队列组件作为Broker的底层支持。</p>
+<p>Micro内置的Pub/Sub模式很简单易用，用户只需要定义好publisher, subscriber以及消息内容，其他工作都将由框架实现。这里给出micor pub/sub的实践案例。</p>
+<p>Broker、publisher、subscriber三者通信的消息结构体为Message，Message结构体的定义如下。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Message <span class="keyword">struct</span> &#123;</span><br><span class="line">	Header <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span></span><br><span class="line">	Body   []<span class="keyword">byte</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>消息订阅者的实现消息订阅如下：</p>
+<ol>
+<li>subscrber先连接上broker，broker.Connect()</li>
+<li>对指定的topic进行注册，broker.Subscribe。特殊地，如果是点对点通信，那需要在，broker.Subscribe的第三个参数加上broker.Queue(topic)。如果是发布订阅模式则不需要。</li>
+<li>实现消息处理函数，传入broker.Subscribe第二个参数。<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/micro/micro/v3/service&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/micro/micro/v3/service/logger&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/micro/go-micro/broker&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> topic1 = <span class="string">&quot;topic1&quot;</span></span><br><span class="line"><span class="keyword">var</span> topic2 = <span class="string">&quot;topic2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">handleEvent</span><span class="params">(b broker.Event)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	msg := <span class="keyword">string</span>(b.Message().Body)</span><br><span class="line">	logger.Infof(<span class="string">&quot;[sub] recieve message: %s, header: %s\n&quot;</span>, msg, b.Message().Header)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 点对点消息通信，消息不会复制，只会被一个消费者消费</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">subTopicQ</span><span class="params">(topic <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	_, err := broker.Subscribe(topic, handleEvent, broker.Queue(topic))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发布订阅模式消息通信，消息会复制，可以被多个消费者消费</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">subTopic</span><span class="params">(topic <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	_, err := broker.Subscribe(topic, handleEvent)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="comment">// Create service</span></span><br><span class="line">	srv := service.New(</span><br><span class="line">		service.Name(<span class="string">&quot;hellosubscriber&quot;</span>),</span><br><span class="line">		service.Version(<span class="string">&quot;latest&quot;</span>),</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	srv.Init()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> err := broker.Connect(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        logger.Error(<span class="string">&quot;Broker Connect error: &quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	subTopic(topic1)</span><br><span class="line">	subTopicQ(topic2)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Run service</span></span><br><span class="line">	<span class="keyword">if</span> err := srv.Run(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		logger.Fatal(err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>消息发布的实现消息发布的步骤如下：</p>
+<ol>
+<li>publisher先连接上broker，broker.Connect()</li>
+<li>broker.Publish(topic, msg) 直接对指定topic发送消息。</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/micro/micro/v3/service&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/micro/micro/v3/service/logger&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/micro/go-micro/broker&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/pborman/uuid&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> topic1 = <span class="string">&quot;topic1&quot;</span></span><br><span class="line"><span class="keyword">var</span> topic2 = <span class="string">&quot;topic2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">handleEvent</span><span class="params">(b broker.Event)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	msg := <span class="keyword">string</span>(b.Message().Body)</span><br><span class="line">	logger.Infof(<span class="string">&quot;[sub] recieve message: %s, header: %s\n&quot;</span>, msg, b.Message().Header)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发布消息</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">pubTopic</span><span class="params">(topic <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> <span class="keyword">range</span> time.Tick(time.Second) &#123;</span><br><span class="line">		msg := &amp;broker.Message &#123;</span><br><span class="line">			Header: <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span> &#123;</span><br><span class="line">				<span class="string">&quot;id&quot;</span>: uuid.NewUUID().String(),</span><br><span class="line">			&#125;,</span><br><span class="line">			Body: []<span class="keyword">byte</span>(fmt.Sprintf(<span class="string">&quot;Messaging you all day on %s&quot;</span>, topic)),</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> err := broker.Publish(topic, msg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			logger.Error(<span class="string">&quot;Broker Publish error: &quot;</span>, err)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			logger.Infof(<span class="string">&quot;Broker Publish topic:%s msg: %s&quot;</span>, topic, msg)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="comment">// Create service</span></span><br><span class="line">	srv := service.New(</span><br><span class="line">		service.Name(<span class="string">&quot;hellopublisher&quot;</span>),</span><br><span class="line">		service.Version(<span class="string">&quot;latest&quot;</span>),</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	srv.Init()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> err := broker.Connect(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        logger.Error(<span class="string">&quot;Broker Connect error: &quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> pubTopic(topic1)</span><br><span class="line">	<span class="keyword">go</span> pubTopic(topic2)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Run service</span></span><br><span class="line">	<span class="keyword">if</span> err := srv.Run(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		logger.Fatal(err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>实践过程：</p>
+<ol>
+<li>订阅服务，我起了两个，命名为sub1,sub2</li>
+<li>发布服务，我起了pub，pub里两个协程向topic1和topic2发送消息</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">micro run --name sub1 .</span><br><span class="line">micro run --name sub2 .</span><br><span class="line">micro run --name pub .</span><br><span class="line"></span><br><span class="line">unshideMacBook-Pro:hellosubcriber junshili$ micro status </span><br><span class="line">NAME	VERSION	SOURCE				STATUS	BUILD	UPDATED		METADATA</span><br><span class="line">pub	latest	&#x2F;Users&#x2F;junshili&#x2F;hellopublisher	running	n&#x2F;a	1m48s ago	owner&#x3D;admin, group&#x3D;micro</span><br><span class="line">sub1	latest	&#x2F;Users&#x2F;junshili&#x2F;hellosubcriber	running	n&#x2F;a	13s ago		owner&#x3D;admin, group&#x3D;micro</span><br><span class="line">sub2	latest	&#x2F;Users&#x2F;junshili&#x2F;hellosubcriber	running	n&#x2F;a	6s ago		owner&#x3D;admin, group&#x3D;micro</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">junshideMacBook-Pro:hellosubcriber junshili$ micro stats --all custom</span><br><span class="line">SERVICE    hellopublisher</span><br><span class="line"></span><br><span class="line">VERSION    latest</span><br><span class="line"></span><br><span class="line">NODE                                                   ADDRESS:PORT           STARTED            UPTIME    MEMORY    THREADS    GC</span><br><span class="line">hellopublisher-a5c3156e-cb26-40af-b899-092195a49fd4    192.168.1.101:54250    May 13 00:46:28    2m5s      2.88mb    43         10.670273ms</span><br><span class="line"></span><br><span class="line">SERVICE    hellosubscriber</span><br><span class="line"></span><br><span class="line">VERSION    latest</span><br><span class="line"></span><br><span class="line">NODE                                                    ADDRESS:PORT           STARTED            UPTIME    MEMORY    THREADS    GC</span><br><span class="line">hellosubscriber-7035f6b4-ebd8-4dbf-bb10-eb49cf7ca34c    192.168.1.101:54578    May 13 00:48:13    21s       2.54mb    33         114.399µs</span><br><span class="line"></span><br><span class="line">hellosubscriber-aa456e83-c035-43dc-9a71-a459c2c058c3    192.168.1.101:54572    May 13 00:48:13    21s    2.63mb    33    121.528µs</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们使用<code>micro logs -f helloworld</code> 或者 <code>micro logs helloworld</code>查看服务输出的日志。</p>
+<p>先观察pub服务的日志，pub在向发送topic1和topic2消息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">2021-05-13 00:46:29  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic2 msg: &amp;&#123;map[id:99b30102-b341-11eb-b5c8-acde48001122] Messaging you all day on topic2&#125;</span><br><span class="line">2021-05-13 00:46:29  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic1 msg: &amp;&#123;map[id:99b30184-b341-11eb-b5c8-acde48001122] Messaging you all day on topic1&#125;</span><br><span class="line">2021-05-13 00:46:30  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic2 msg: &amp;&#123;map[id:9a4af598-b341-11eb-b5c8-acde48001122] Messaging you all day on topic2&#125;</span><br><span class="line">2021-05-13 00:46:30  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic1 msg: &amp;&#123;map[id:9a4af692-b341-11eb-b5c8-acde48001122] Messaging you all day on topic1&#125;</span><br><span class="line">2021-05-13 00:46:31  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic1 msg: &amp;&#123;map[id:9ae409d6-b341-11eb-b5c8-acde48001122] Messaging you all day on topic1&#125;</span><br><span class="line">2021-05-13 00:46:31  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic2 msg: &amp;&#123;map[id:9ae40ae4-b341-11eb-b5c8-acde48001122] Messaging you all day on topic2&#125;</span><br><span class="line">2021-05-13 00:46:32  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic2 msg: &amp;&#123;map[id:9b7ca894-b341-11eb-b5c8-acde48001122] Messaging you all day on topic2&#125;</span><br><span class="line">2021-05-13 00:46:32  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic1 msg: &amp;&#123;map[id:9b7ca7ea-b341-11eb-b5c8-acde48001122] Messaging you all day on topic1&#125;</span><br><span class="line">2021-05-13 00:46:33  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic1 msg: &amp;&#123;map[id:9c152dc6-b341-11eb-b5c8-acde48001122] Messaging you all day on topic1&#125;</span><br><span class="line">2021-05-13 00:46:33  file&#x3D;blob-940620946&#x2F;main.go:34 level&#x3D;info Broker Publish topic:topic2 msg: &amp;&#123;map[id:9c152a88-b341-11eb-b5c8-acde48001122] Messaging you all day on topic2&#125;</span><br></pre></td></tr></table></figure>
+
+<p>观察sub1的日志</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">2021-05-13 00:50:14  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:1fcede3c-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:14  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:1fcedfb8-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:15  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:2067d614-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:15  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:2067d876-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:16  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:20ffd928-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:16  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:20ffd6c6-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:17  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:2198c3d6-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:17  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:2198c2e6-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:18  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:22317f90-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:18  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:22318634-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:19  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:22ca283a-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:19  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:22ca25b0-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:20  file&#x3D;blob-924495561&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:23628e5e-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>观察sub2的日志</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">2021-05-13 00:50:14  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:1fcedfb8-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:15  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:2067d876-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:16  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:20ffd6c6-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:17  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:2198c2e6-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:18  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:22318634-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:19  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:22ca283a-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:20  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:23628d1e-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:20  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:23628e5e-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:21  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:23fb6cc8-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:21  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:23fb6d90-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:22  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic2, header: map[id:24940438-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br><span class="line">2021-05-13 00:50:22  file&#x3D;blob-694627220&#x2F;main.go:15 level&#x3D;info [sub] recieve message: Messaging you all day on topic1, header: map[id:2494015e-b342-11eb-b5c8-acde48001122]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>对比sub1和sub2的日志可以看出，sub1和sub2都能收到topic1的消息，证实topic1可以被多个订阅者消费，符合发布订阅模式。至于topic2，只能被一个消费者消费，不存在一条消息被多个消费者消费的情况，对应的是点对点消息队列通信机制。因此，需要区分这两种通信机制的go micro写法。</p>
+<p>go micro默认的消息队列组件是自己实现的，实际上其实就是一个map，topic是map的key，发布消息时就往map里存，然后broker调度给订阅了该topic的服务推送。生产环境请更换为kafka,rabbitmq这类专用消息队列。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/micro/micro/blob/master/service/broker/memory/memory.go">https://github.com/micro/micro/blob/master/service/broker/memory/memory.go</a></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> memoryBroker <span class="keyword">struct</span> &#123;</span><br><span class="line">	opts broker.Options</span><br><span class="line"></span><br><span class="line">	addr <span class="keyword">string</span></span><br><span class="line">	sync.RWMutex</span><br><span class="line">	connected   <span class="keyword">bool</span></span><br><span class="line">	Subscribers <span class="keyword">map</span>[<span class="keyword">string</span>][]*memorySubscriber</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> memorySubscriber <span class="keyword">struct</span> &#123;</span><br><span class="line">	id      <span class="keyword">string</span></span><br><span class="line">	topic   <span class="keyword">string</span></span><br><span class="line">	exit    <span class="keyword">chan</span> <span class="keyword">bool</span></span><br><span class="line">	handler broker.Handler</span><br><span class="line">	opts    broker.SubscribeOptions</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>go micro broker支持的消息队列在以下链接可以获取：<br><a target="_blank" rel="noopener" href="https://github.com/microhq/go-plugins/tree/master/broker">https://github.com/microhq/go-plugins/tree/master/broker</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8A%80%E6%9C%AF/" class="category-chain-item">技术</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/go/" class="print-no-link">#go</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Go快速上手--微服务框架go-micro</div>
+      <div>http://example.com/2021/05/12/Go快速上手-微服务框架go-micro/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>May 12, 2021</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/05/16/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B-%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8-redis-mysql-mongodb/" title="Go快速上手--数据存储（redis,mysql,mongodb）">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Go快速上手--数据存储（redis,mysql,mongodb）</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/05/12/Go%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B%E2%80%94protobuf%E5%92%8CgRPC/" title="Go快速上手—protobuf和gRPC">
+                        <span class="hidden-mobile">Go快速上手—protobuf和gRPC</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

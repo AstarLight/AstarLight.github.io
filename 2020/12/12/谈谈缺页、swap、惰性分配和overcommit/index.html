@@ -1,0 +1,726 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Linux下的内存管理其实都绕不开文章题目的4个词语：缺页、swap、惰性分配和overcommit，而操作系统的内存管理的难点在于：  物理内存不够该怎么做？ 内存分配怎么才能做到高效？  本文想谈的是，内存不足时Linux操作系统是怎么高效分配内存资源的。 Linux 内核给每个进程都提供了一个独立的虚拟地址空间，并且这个地址空间是连续的。这样，进程就可以很方便地访问内存，更确切地说是访问虚拟">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谈谈缺页、swap、惰性分配和overcommit">
+<meta property="og:url" content="http://example.com/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Linux下的内存管理其实都绕不开文章题目的4个词语：缺页、swap、惰性分配和overcommit，而操作系统的内存管理的难点在于：  物理内存不够该怎么做？ 内存分配怎么才能做到高效？  本文想谈的是，内存不足时Linux操作系统是怎么高效分配内存资源的。 Linux 内核给每个进程都提供了一个独立的虚拟地址空间，并且这个地址空间是连续的。这样，进程就可以很方便地访问内存，更确切地说是访问虚拟">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/1.png">
+<meta property="og:image" content="http://example.com/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/4.png">
+<meta property="og:image" content="http://example.com/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/2.png">
+<meta property="og:image" content="http://example.com/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/5.png">
+<meta property="og:image" content="http://example.com/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/10.png">
+<meta property="og:image" content="http://example.com/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/6.png">
+<meta property="article:published_time" content="2020-12-11T16:31:12.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:45.412Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="性能优化">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/1.png">
+  
+  
+  
+  <title>谈谈缺页、swap、惰性分配和overcommit - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="谈谈缺页、swap、惰性分配和overcommit"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-12-12 00:31" pubdate>
+          December 12, 2020 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.6k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          30 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">谈谈缺页、swap、惰性分配和overcommit</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Linux下的内存管理其实都绕不开文章题目的4个词语：缺页、swap、惰性分配和overcommit，而操作系统的内存管理的难点在于：</p>
+<ol>
+<li>物理内存不够该怎么做？</li>
+<li>内存分配怎么才能做到高效？</li>
+</ol>
+<p>本文想谈的是，内存不足时Linux操作系统是怎么高效分配内存资源的。</p>
+<p>Linux 内核给每个进程都提供了一个独立的虚拟地址空间，并且这个地址空间是连续的。这样，进程就可以很方便地访问内存，更确切地说是访问虚拟内存。</p>
+<p>32位操作系统的可寻址范围是4G，因此32位系统的最大可分配的内存空间为4G。比如我们一个32位系统，内存为1G，我们可以给某个进程最大可分配3G内存空间（1G为系统自留使用）。对于64位系统，寻址空间为2的64次方，一个非常大的数，理论上我们不可能使用完这些空间。而64位系统的内核空间和用户空间都是 128T，分别占据整个内存空间的最高和最低处，剩下的中间部分是未定义的。</p>
+<p><img src="/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/1.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>进程是分为内核态和用户态，进程处于用户态时，只能访问用户空间地址，当陷入内核态时，就可以方便地进行系统调用，使用内核空间地址。用户空间内存，从低到高分别是五种不同的内存段。</p>
+<ol>
+<li>只读段，包括代码和常量等。</li>
+<li>数据段，包括全局变量等。</li>
+<li>堆，包括动态分配的内存，从低地址开始向上增长。</li>
+<li>文件映射段，包括动态库、共享内存等，从高地址开始向下增长。</li>
+<li>栈，包括局部变量和函数调用的上下文等。栈的大小是固定的，一般是 8 MB。</li>
+</ol>
+<p><img src="/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/4.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>在这五个内存段中，堆和文件映射段的内存是动态分配的。比如说，使用 C 标准库的 malloc() 或者 mmap() ，就可以分别在堆和文件映射段动态分配内存。</p>
+<p>因为每个进程都可以寻址的空间范围是虚拟内存的地址大小，如果我们所有进程的虚拟内存加起来，肯定是远比物理内存要大的。操作能做到能向进程提供比物理内存大的虚拟内存，依赖三项技术：</p>
+<ol>
+<li>快速的内存地址转换（虚拟地址到物理地址）</li>
+<li>惰性分配</li>
+<li>overcommit</li>
+</ol>
+<p>虚拟内存地址映射到物理内存地址，是一项极为高频的操作，CPU并不会直接参与这项转换的工作，而是将地址转换的工作交给了MMU。每个进程都有自己的<strong>页表</strong>，记录虚拟地址与物理地址的映射关系，大小一般为4KB。页表实际上存储在 CPU 的内存管理单元MMU中，这样，正常情况下，处理器就可以直接通过硬件，找出要访问的内存。</p>
+<p><img src="/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/2.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>为了加速完成内存映射，操作系统会将TLB（Translation Lookaside Buffer，转译后备缓冲器）作为MMU 中页表的高速缓存，进而提高 CPU 的内存访问性能。当CPU给MMU传新虚拟地址之后，MMU先去问TLB那边有没有，如果有就直接拿到物理地址发到总线给内存，没有则再进行MMU的地址转换操作。</p>
+<p><img src="/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/5.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>地址翻译的过程：</p>
+<p><img src="/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/10.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>考虑一个问题：虚拟地址在TLB和Page Table都没有找到对应的物理页帧时会发生什么？会发生<strong>缺页异常Page Fault</strong>，它是一个由硬件中断触发的可以由软件逻辑纠正的错误。假如目标内存页在物理内存中没有对应的页帧或者存在但无对应权限，CPU 就无法获取数据，这种情况下CPU就会报告一个缺页错误。一般的缺页错误有以下三种：</p>
+<p><img src="/2020/12/12/%E8%B0%88%E8%B0%88%E7%BC%BA%E9%A1%B5%E3%80%81swap%E3%80%81%E6%83%B0%E6%80%A7%E5%88%86%E9%85%8D%E5%92%8Covercommit/6.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>当进程向系统申请分配内存时，操作系统采取的是<strong>惰性分配</strong>的策略，即系统会快速回应需要内存的进程表示你的申请是有效的，但此时并不会为该进程真正分配出内存空间，而是在该进程真正使用到这段内存时才真正分配，这就是惰性分配思想。操作系统采取惰性分配的好处个人认为如下：</p>
+<p><strong>避免某些进程空占着内存资源。有些进程在初始化时就先分配了大量内存，但这些内存空间也许要等到某些条件触发时才会利用上，也有可能到进程退出时也用不到这些内存，因此为了保证内存的使用率，惰性分配很有必要。以一个“延时满足”的思想解决了内存消耗过快的问题。</strong></p>
+<p>我们知道，物理内存不足我们可以通过swap分区来扩展可利用的内存资源，也就是虚拟内存。</p>
+<p>虚拟内存在逻辑上是很大，但是实际上我们不会无节制地开启虚拟内存，一般而言，我们线上的服务器都是采取物理内存+swap分区的策略，比如8G的物理内存+8G swap分区的策略，比较高效的处理内存不足的问题。swap的思想是把不常用的内存数据放在磁盘中去，Swap 其实就是把一块磁盘空间当成内存来用。它可以把进程暂时不用的数据存储到磁盘中（这个过程称为换出，swapout），当进程访问这些内存时，再从磁盘读取这些数据到内存中（这个过程称为换入，swapin），那怎么判定内存的哪些数据是不常用数据需要换出呢，LRU,LFU等都是常用的算法。当物理内存紧张的情况下，当进程访自己已申请的内存地址时，操作系统发现这段内存地址并不在物理内存里，此时就会发生<strong>缺页中断</strong>，根据内存置换算法选出指定页swapout到磁盘，再将马上要使用到的页swapin到内存，完成了页面的swapin和swapout。</p>
+<p>那当我们不得不开启swap时，swap分区的大小该怎么设计呢？一般而言，内存和swap分区的大小1：1是个不会太错的选择，比如4G的物理内存可以考虑配备4G的swap分区。如果物理内存远小于swap分区大小会有什么后果？这样的配备首先说明物理内存已经远不能处理进程的数据了，需要通过大量借助磁盘来扩展内存才能满足进程需求。这本来就是一个不合理的配比，这会导致内存数据块频繁地被置换到磁盘，产生大量的磁盘IO，导致系统很卡（系统性能都全消耗在缺页中断产生的磁盘IO），上面跑的进程很难得到有效调度。</p>
+<p>但反过来，物理内存远大于swap分区并无副作用，比如我们线上 的服务器，物理内存256G，平时活动高峰期内存也完全足够，但为了稳妥起见，我们也还是配了16G的swap分区，作为系统内存异常时的一个最后保障。一些线上服务为了保持高性能一般都会把swap关掉，比如redis。</p>
+<p>这是我们线上服务器的物理内存和交换分区的配比情况，128G物理内存 + 4G的交换分区，因为游戏服务器非常重视单机高性能，所以基本都是内存能开多大就开多大，swap的开启也只是为了某些极端情况下的保底处理，正常情况下都用不上。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Mem: 14G Active, 21G Inact, 43G Wired, 1239M Buf, 47G Free</span><br><span class="line"></span><br><span class="line">Swap: 4096M Total, 4096M Free</span><br></pre></td></tr></table></figure>
+
+<p>我们回到讨论内存分配机制。惰性分配会引入一个新问题：开空头支票带来的副作用，当进程真正要使用早期申请的这块内存时，系统发现系统的总的可利用的内存（物理内存+swap）已经用完了，没法兑现早期的承诺了，这就是操作系统的overcommit。这里继续举个例子来说明：</p>
+<p>系统总可利用的内存资源总大小时4G，一个进程在初始化时向系统申请1G资源，系统因为惰性分配的原因，只回复了该进程已为你分配了1G资源，但实际上幷没有开始分配。一段时间后，该进程需要访问这段已申请的内存地址，系统开始马上回顾当前剩余的空间，发现可用的内存空间已不足200M，此时就是overcommit，翻译过来就是“过度承诺”，操作系统这种操作之后，需要一些措施来收拾残局。</p>
+<p>针对overcommit的场景，首先想到的是，为什么不可以在进程向系统申请分配空间时，系统先去查一下已分配出多少内存空间了，然后再决定是否回复进程本次申请是否成功？答案是可以的，Linux对应的是系统的一个配置，直接禁用overcommit就好。但是禁用的坏处是，内存的利用率不高。考虑到进程之间很少会同时访问大量内存空间，比如4G的内存，操作系统进行overcommit了12G的的空头支票给进程，因为并不是所有进程都在同一刻要求使用4G以上的内存资源，所以overcommit在大多数场合是合适的，不开启overcommit，可利用的资源是4G，开启后可能就可以达到8G甚至更多。但最后还是得有措施保底，即真的有某一个时刻进程要使用的内存空间大于可利用的内存空间呢？</p>
+<p>上面的swap是为了解决<strong>物理内存</strong>不足，但当物理内存+交换分区都不足时，比如上面的配置，我们可以利用的虚拟内存总和就是16G，当已分配的内存超过这个数字时，操作系统必须采取某个策略来处理内存不足的问题了。事实上，内存再大，对应用程序来说，也有不够用的时候。</p>
+<p>这个策略就是OOM killer，即当系统中可利用的内存资源已经耗尽时，OOM killer机制会对杀死分数最高的进程，以求释放内存资源保证系统可以稳定运行。</p>
+<p>在Linux上swap，overcommit都是有参数可以调整的，比如调overcommit对应的参数是overcommit_memory。</p>
+<p>overcommit_memory是一个内核对内存分配的一种策略,它有三个可选值:0、1、2。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">https:&#x2F;&#x2F;github.com&#x2F;torvalds&#x2F;linux&#x2F;blob&#x2F;master&#x2F;include&#x2F;uapi&#x2F;linux&#x2F;mman.h</span><br><span class="line"> </span><br><span class="line">#define OVERCOMMIT_GUESS                0</span><br><span class="line">#define OVERCOMMIT_ALWAYS               1</span><br><span class="line">#define OVERCOMMIT_NEVER                2</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>0：内核将检查是否有足够的内存分配给程序。如果没有则申请失败，并把错误返回给应用进程。而在Redis中这个错误就会表现为“Cannot allocate memory”，然后触发OOM</li>
+<li>1：表示内核允许超量使用内存直到用完为止</li>
+<li>2：表示内核决不超量使用内存，即系统整个内存空间不能超过swap+50%的RAM值，50%是overcommit_ratio默认值，此参数支持修改</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lijunshi@GIH-D-21171:&#x2F;mnt&#x2F;e&#x2F;services$ grep -i commit &#x2F;proc&#x2F;meminfo</span><br><span class="line">CommitLimit:      515524 kB</span><br><span class="line">Committed_AS:    3450064 kB</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>其中， CommitLimit = swap（交换内存） + mem(物理内存) * overcommit_ratio / 100。这和CommitLimit的数值是吻合的。</p>
+<p>overcommit_ratio查看方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;overcommit_ratio</span><br><span class="line">50</span><br></pre></td></tr></table></figure>
+
+
+<p>所以我们可以根据需求配置这个参数，刚举的例子就是对应为参数1，允许内核分配超过所有物理内存和交换空间总和的内存，当实在是无法处理时就使用OOM killer杀进程释放内存。在实际案例中，Redis建议把这个值设置为1，是为了让bgsave时fork能够在低内存下也执行成功。</p>
+<p>这是我个人PC上的ubuntu的内存配置，16G物理内存搭配了48G的swap分区，物理内存已消耗了50%，但此状态下的swap很低，基本没有使用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">lijunshi@GIH-D-21171:&#x2F;mnt&#x2F;e&#x2F;services$ free  -h</span><br><span class="line">              total        used        free      shared  buff&#x2F;cache   available</span><br><span class="line">Mem:           15Gi       7.3Gi       8.4Gi        17Mi       223Mi       8.5Gi</span><br><span class="line">Swap:          48Gi       124Mi        47Gi</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">lijunshi@GIH-D-21171:&#x2F;mnt&#x2F;e&#x2F;services$ cat &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;overcommit_memory</span><br><span class="line">0</span><br><span class="line">lijunshi@GIH-D-21171:&#x2F;mnt&#x2F;e&#x2F;services$ cat &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;swappiness</span><br><span class="line">60</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>我的ubuntu系统overcommit_memory默认为0，即表示内核将检查是否有足够的可用内存供应用进程使用；如果有足够的可用内存，内存申请允许；否则，内存申请失败，并把错误返回给应用进程。也就是每次内存申请时都将判定这次申请是否真的成功，放弃惰性分配策略，不会产生overcommit现象。</p>
+<p>而swap分区对应的内存参数是swappiness。swappiness的值的大小对如何使用swap分区是有着很大的联系的。swappiness=0的时候表示最大限度使用物理内存，然后才是swap空间，swappiness＝100的时候表示积极的使用swap分区，并且把内存上的数据及时的搬运到swap空间里面。linux的基本默认设置为60。当swappines设置得比较大时，你会发现即使系统物理内存还剩余很多，但系统还是倾向于大量使用很慢的swap分区，这就导致系统很卡。但值得注意的是swappiness=0并不表示禁用交换分区，而是指尽可能不使用交换分区，但当内存已经耗尽时也会选择使用交换分区，如果不想使用交换分区，那就不要启用swap。</p>
+<p>所以一个重要的性能优化经验就是：<strong>最好禁用swap</strong>。swap应该是针对以前内存小的一种优化,如果是高性能服务，最好禁止 Swap，比如redis，mysql等服务，都是推荐禁用swap的。如果必须开启 Swap，那需要降低 swappiness 的值，减少内存回收时 Swap 的使用倾向。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8A%80%E6%9C%AF/" class="category-chain-item">技术</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/linux/" class="print-no-link">#linux</a>
+      
+        <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="print-no-link">#性能优化</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>谈谈缺页、swap、惰性分配和overcommit</div>
+      <div>http://example.com/2020/12/12/谈谈缺页、swap、惰性分配和overcommit/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>December 12, 2020</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/12/18/%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/" title="网络性能优化策略">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">网络性能优化策略</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/12/06/shell%E6%97%A5%E5%BF%97%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90%E5%AE%9E%E6%88%98/" title="shell日志数据分析实战">
+                        <span class="hidden-mobile">shell日志数据分析实战</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
