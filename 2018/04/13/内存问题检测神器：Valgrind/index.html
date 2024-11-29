@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+    <head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+  <meta name="robots" content="index, follow">
+  <!-- title -->
+  
+    
+  <title>内存问题检测神器：Valgrind - Hexo</title>
+    
+  
+  
+  <!-- open graph -->
+  <meta name="description" content="在写大型C&#x2F;C++工程时难免会发生内存泄漏现象，系统编程中一个重要的方面就是有效地处理与内存相关的问题。你的工作越接近系统，你就需要面对越多的内存问题。有时这些问题非常琐碎，而更多时候它会演变成一个调试内存问题的恶梦。 常见的内存问题一共七种：  动态内存泄露； 资源泄露，比如文件指针不关闭； 动态内存越界； 数组内存越界； 动态内存double free； 使用野指针，即未初始化的指针； 释放野">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存问题检测神器：Valgrind">
+<meta property="og:url" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在写大型C&#x2F;C++工程时难免会发生内存泄漏现象，系统编程中一个重要的方面就是有效地处理与内存相关的问题。你的工作越接近系统，你就需要面对越多的内存问题。有时这些问题非常琐碎，而更多时候它会演变成一个调试内存问题的恶梦。 常见的内存问题一共七种：  动态内存泄露； 资源泄露，比如文件指针不关闭； 动态内存越界； 数组内存越界； 动态内存double free； 使用野指针，即未初始化的指针； 释放野">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193554002-1364573355.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193604735-1875378577.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193613574-1154240221.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193624421-247811116.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193638871-928305119.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193651410-2101563201.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193706246-508790416.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193716994-628209858.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193726929-641784050.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193738724-1869262186.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193750769-1501914916.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193802975-763647802.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193817047-1922627647.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193830425-1531404607.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193844415-122107118.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193909777-1273155147.jpg">
+<meta property="og:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193923068-1690539405.jpg">
+<meta property="article:published_time" content="2018-04-13T10:59:09.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:44.391Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="内存">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193554002-1364573355.jpg">
+  <!-- canonical -->
+  
+  <link rel="canonical" href="http://example.com/2018/04/13/内存问题检测神器：Valgrind/">
+  
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="/img/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+  <!-- CSS -->
+  
+<link rel="stylesheet" href="/css/reset.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<link rel="stylesheet" href="/css/markdown.css">
+
+  
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">Hexo</a>
+    <!-- <div class="logo"><a href="/" title="Len"><img src="/img/logo.svg" alt="Len" aria-label="logo" height="20"></a></div> -->
+        <ul class="nav">
+            
+            <li><a href="/">Home</a></li>
+            
+            <li><a href="/about">About</a></li>
+            
+            <li><a href="/archives">Archives</a></li>
+            
+        </ul>
+
+
+    </a>
+</div>
+
+                
+                <div class="post-main">
+    
+        <div class="post-main-title">
+            内存问题检测神器：Valgrind
+        </div>
+        <div class="post-meta">
+            2018-04-13 ｜ 
+            
+                <a href="/categories/%E5%B7%A5%E5%85%B7/"># 工具</a>
+            
+        </div>
+        <!-- 圆角分类 -->
+        <!-- <div class="tags"> -->
+            <!--  -->
+                <!-- <a href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> -->
+            <!--  -->
+        <!-- </div> -->
+        <div class="post-md">
+            <p>在写大型C/C++工程时难免会发生内存泄漏现象，系统编程中一个重要的方面就是有效地处理与内存相关的问题。你的工作越接近系统，你就需要面对越多的内存问题。有时这些问题非常琐碎，而更多时候它会演变成一个调试内存问题的恶梦。 常见的内存问题一共七种：</p>
+<ol>
+<li>动态内存泄露；</li>
+<li>资源泄露，比如文件指针不关闭；</li>
+<li>动态内存越界；</li>
+<li>数组内存越界；</li>
+<li>动态内存double free；</li>
+<li>使用野指针，即未初始化的指针；</li>
+<li>释放野指针，即未初始化的指针。</li>
+</ol>
+<p>内存问题非常难定位，对于小工程来说，简单去检查代码中new和delete的匹配对数就基本能定位到问题，但是一旦代码量上升到以万单位时，仅靠肉眼检查来定位问题那就非常困难了，所以我们需要利用工具帮助我们找出问题所在。在Linux系统下内存检测工具首推Valgrind，一款非常好用的开源内存管理框架。Valgrind其实是一个工具集，内存错误检测只是它众多功能的一个，但我们用得最多的功能正是它——memcheck。</p>
+<p>该工具可以检测下列与内存相关的问题 :</p>
+<ul>
+<li>未释放内存的使用</li>
+<li>对释放后内存的读/写</li>
+<li>对已分配内存块尾部的读/写</li>
+<li>内存泄露</li>
+<li>不匹配的使用malloc/new/new[] 和 free/delete/delete[]</li>
+<li>重复释放内存</li>
+</ul>
+<p>首先安装Valgrind非常简单：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;valgrind下载：</span><br><span class="line">http:&#x2F;&#x2F;valgrind.org&#x2F;downloads&#x2F;valgrind-3.12.0.tar.bz2</span><br><span class="line"></span><br><span class="line">valgrind安装：</span><br><span class="line">1. tar -jxvf valgrind-3.12.0.tar.bz2</span><br><span class="line">2. cd valgrind-3.12.0</span><br><span class="line">3. .&#x2F;configure</span><br><span class="line">4. make</span><br><span class="line">5. sudo make install</span><br></pre></td></tr></table></figure>
+
+
+<p>下面开始讲解Valgrind的应用场景。</p>
+<p>注意: 下面讨论的所有测试代码都应该使用gcc/g++并且加上-g选项。</p>
+<h2 id="1-使用未初始化的内存（使用野指针）"><a href="#1-使用未初始化的内存（使用野指针）" class="headerlink" title="1. 使用未初始化的内存（使用野指针）"></a>1. 使用未初始化的内存（使用野指针）</h2><p>这里我们定义了一个指针p，但并未给他开辟空间，即他是一个野指针，但我们却使用它了。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193554002-1364573355.jpg"></p>
+<p>Valgrind检测出我们程序使用了未初始化的变量，但并未检测出内存泄漏。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193604735-1875378577.jpg"></p>
+<h2 id="2-在内存被释放后进行读-写（使用野指针）"><a href="#2-在内存被释放后进行读-写（使用野指针）" class="headerlink" title="2.在内存被释放后进行读/写（使用野指针）"></a>2.在内存被释放后进行读/写（使用野指针）</h2><p>p所指向的内存被释放了，p变成了野指针，但是我们却继续使用这片内存。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193613574-1154240221.jpg"></p>
+<p>Valgrind检测出我们使用了已经free掉的内存，并给出这片内存是哪里分配哪里释放的。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193624421-247811116.jpg"></p>
+<h2 id="3-从已分配内存块的尾部进行读-写（动态内存越界）"><a href="#3-从已分配内存块的尾部进行读-写（动态内存越界）" class="headerlink" title="3.从已分配内存块的尾部进行读/写（动态内存越界）"></a>3.从已分配内存块的尾部进行读/写（动态内存越界）</h2><p>我们动态地分配了一段数组，但我们在访问个数组时发生了越界读写，程序crash掉。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193638871-928305119.jpg"></p>
+<p>Valgrind检测出越界的位置。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193651410-2101563201.jpg"></p>
+<p>注意：Valgrind不检查静态分配数组的使用情况！所以对静态分配的数组，Valgrind表示无能为力！比如下面的例子，程序crash掉，我们却不知道为什么。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193706246-508790416.jpg"></p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193716994-628209858.jpg"></p>
+<h2 id="4-内存泄漏"><a href="#4-内存泄漏" class="headerlink" title="4.内存泄漏"></a>4.内存泄漏</h2><p>内存泄漏的原因在于没有成对地使用malloc/free和new/delete，比如下面的例子。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193726929-641784050.jpg"></p>
+<p>Valgrind会给出程序中malloc和free的出现次数以判断是否发生内存泄漏，比如对上面的程序运行memcheck，Valgrind的记录显示上面的程序用了1次malloc，却调用了0次free，明显发生了内存泄漏！</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193738724-1869262186.jpg"></p>
+<p>上面提示了我们可以使用–leak-check=full进一步获取内存泄漏的信息，比如malloc和free的具体行号。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193750769-1501914916.jpg"></p>
+<h2 id="5-不匹配地使用malloc-new-new-和-free-delete-delete"><a href="#5-不匹配地使用malloc-new-new-和-free-delete-delete" class="headerlink" title="5. 不匹配地使用malloc/new/new[] 和 free/delete/delete[]"></a>5. 不匹配地使用malloc/new/new[] 和 free/delete/delete[]</h2><p>正常使用new/delete和malloc/free是这样子的：</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193802975-763647802.jpg"></p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193817047-1922627647.jpg"></p>
+<p>而不匹配地使用malloc/new/new[] 和 free/delete/delete[]则会被提示mismacth：</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193830425-1531404607.jpg"></p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193844415-122107118.jpg"></p>
+<h2 id="6-两次释放内存"><a href="#6-两次释放内存" class="headerlink" title="6.两次释放内存"></a>6.两次释放内存</h2><p>double free的情况同样是根据malloc/free的匹配对数来体现的，比如free多了一次，Valgrind也会提示。</p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193909777-1273155147.jpg"></p>
+<p><img src="/2018/04/13/%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E6%A3%80%E6%B5%8B%E7%A5%9E%E5%99%A8%EF%BC%9AValgrind/1093303-20180413193923068-1690539405.jpg"></p>
+<p>当然，Valgrind也不是万能的。Valgrind也有无法找到问题的时候，有些问题只能通过不断的review代码找到了症结。发现问题，解决问题，毕竟是末流。最好的方法，就是不引入内存问题。这可以通过良好的代码风格和设计来实现的。</p>
+
+        </div>
+    
+<!-- tags -->
+
+    <div class="post-meta">
+        标签：
+        
+            <a href="/tags/linux/"> / linux</a>
+        
+            <a href="/tags/%E5%86%85%E5%AD%98/"> / 内存</a>
+        
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © <script>document.write(new Date().getFullYear())</script> Hexo</span>
+    <span>Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> with <a target="_blank" rel="noopener" href="https:///imzl.com/zenmind">ZenMind</a></span>
+</div>
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

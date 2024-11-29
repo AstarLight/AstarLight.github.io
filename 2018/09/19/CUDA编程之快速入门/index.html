@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+    <head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+  <meta name="robots" content="index, follow">
+  <!-- title -->
+  
+    
+  <title>CUDA编程之快速入门 - Hexo</title>
+    
+  
+  
+  <!-- open graph -->
+  <meta name="description" content="CUDA（Compute Unified Device Architecture）的中文全称为计算统一设备架构。做图像视觉领域的同学多多少少都会接触到CUDA，毕竟要做性能速度优化，CUDA是个很重要的工具，CUDA是做视觉的同学难以绕过的一个坑，必须踩一踩才踏实。CUDA编程真的是入门容易精通难，具有计算机体系结构和C语言编程知识储备的同学上手CUDA编程应该难度不会很大。本文章将通过以下五个方">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CUDA编程之快速入门">
+<meta property="og:url" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="CUDA（Compute Unified Device Architecture）的中文全称为计算统一设备架构。做图像视觉领域的同学多多少少都会接触到CUDA，毕竟要做性能速度优化，CUDA是个很重要的工具，CUDA是做视觉的同学难以绕过的一个坑，必须踩一踩才踏实。CUDA编程真的是入门容易精通难，具有计算机体系结构和C语言编程知识储备的同学上手CUDA编程应该难度不会很大。本文章将通过以下五个方">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122904566-1040268509.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122917935-1661200386.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122932879-1946399786.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122947035-1099878851.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123003250-1159089426.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123018799-1605248744.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123034967-1110899742.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123048002-1383369419.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123101933-1651940595.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123113524-1183131017.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123125957-1702896390.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123147745-348682595.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123203820-1388097134.png">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123226548-463149583.jpg">
+<meta property="og:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123238277-429965808.png">
+<meta property="article:published_time" content="2018-09-19T11:18:36.000Z">
+<meta property="article:modified_time" content="2024-11-29T07:44:44.064Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="并行计算">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122904566-1040268509.png">
+  <!-- canonical -->
+  
+  <link rel="canonical" href="http://example.com/2018/09/19/CUDA编程之快速入门/">
+  
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="/img/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+  <!-- CSS -->
+  
+<link rel="stylesheet" href="/css/reset.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<link rel="stylesheet" href="/css/markdown.css">
+
+  
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">Hexo</a>
+    <!-- <div class="logo"><a href="/" title="Len"><img src="/img/logo.svg" alt="Len" aria-label="logo" height="20"></a></div> -->
+        <ul class="nav">
+            
+            <li><a href="/">Home</a></li>
+            
+            <li><a href="/about">About</a></li>
+            
+            <li><a href="/archives">Archives</a></li>
+            
+        </ul>
+
+
+    </a>
+</div>
+
+                
+                <div class="post-main">
+    
+        <div class="post-main-title">
+            CUDA编程之快速入门
+        </div>
+        <div class="post-meta">
+            2018-09-19 ｜ 
+            
+                <a href="/categories/%E6%8A%80%E6%9C%AF/"># 技术</a>
+            
+        </div>
+        <!-- 圆角分类 -->
+        <!-- <div class="tags"> -->
+            <!--  -->
+                <!-- <a href="/categories/%E6%8A%80%E6%9C%AF/">技术</a> -->
+            <!--  -->
+        <!-- </div> -->
+        <div class="post-md">
+            <p>CUDA（Compute Unified Device Architecture）的中文全称为计算统一设备架构。做图像视觉领域的同学多多少少都会接触到CUDA，毕竟要做性能速度优化，CUDA是个很重要的工具，CUDA是做视觉的同学难以绕过的一个坑，必须踩一踩才踏实。CUDA编程真的是入门容易精通难，具有计算机体系结构和C语言编程知识储备的同学上手CUDA编程应该难度不会很大。本文章将通过以下五个方面帮助大家比较全面地了解CUDA编程最重要的知识点，做到快速入门：</p>
+<ol>
+<li>GPU架构特点</li>
+<li>CUDA线程模型</li>
+<li>CUDA内存模型</li>
+<li>CUDA编程模型</li>
+<li>CUDA应用小例子</li>
+</ol>
+<h2 id="1-GPU架构特点"><a href="#1-GPU架构特点" class="headerlink" title="1. GPU架构特点"></a>1. GPU架构特点</h2><p>首先我们先谈一谈串行计算和并行计算。我们知道，高性能计算的关键利用多核处理器进行并行计算。</p>
+<p>当我们求解一个计算机程序任务时，我们很自然的想法就是将该任务分解成一系列小任务，把这些小任务一一完成。在串行计算时，我们的想法就是让我们的处理器每次处理一个计算任务，处理完一个计算任务后再计算下一个任务，直到所有小任务都完成了，那么这个大的程序任务也就完成了。如下图所示，就是我们怎么用串行编程思想求解问题的步骤。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122904566-1040268509.png"></p>
+<p>但是串行计算的缺点非常明显，如果我们拥有多核处理器，我们可以利用多核处理器同时处理多个任务时，而且这些小任务并没有关联关系（不需要相互依赖，比如我的计算任务不需要用到你的计算结果），那我们为什么还要使用串行编程呢？为了进一步加快大任务的计算速度，我们可以把一些独立的模块分配到不同的处理器上进行同时计算（这就是并行），最后再将这些结果进行整合，完成一次任务计算。下图就是将一个大的计算任务分解为小任务，然后将独立的小任务分配到不同处理器进行并行计算，最后再通过串行程序把结果汇总完成这次的总的计算任务。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122917935-1661200386.png"></p>
+<p>所以，一个程序可不可以进行并行计算，关键就在于我们要分析出该程序可以拆分出哪几个执行模块，这些执行模块哪些是独立的，哪些又是强依赖强耦合的，独立的模块我们可以试着设计并行计算，充分利用多核处理器的优势进一步加速我们的计算任务，强耦合模块我们就使用串行编程，利用串行+并行的编程思路完成一次高性能计算。</p>
+<p>接下来我们谈谈CPU和GPU有什么区别，他们俩各自有什么特点，我们在谈并行、串行计算时多次谈到“多核”的概念，现在我们先从“核”的角度开始这个话题。首先CPU是专为顺序串行处理而优化的几个核心组成。而GPU则由数以千计的更小、更高效的核心组成，这些核心专门为同时处理多任务而设计，可高效地处理并行任务。也就是，CPU虽然每个核心自身能力极强，处理任务上非常强悍，无奈他核心少，在并行计算上表现不佳；反观GPU，虽然他的每个核心的计算能力不算强，但他胜在核心非常多，可以同时处理多个计算任务，在并行计算的支持上做得很好。</p>
+<p>GPU和CPU的不同硬件特点决定了他们的应用场景，CPU是计算机的运算和控制的核心，GPU主要用作图形图像处理。图像在计算机呈现的形式就是矩阵，我们对图像的处理其实就是操作各种矩阵进行计算，而很多矩阵的运算其实可以做并行化，这使得图像处理可以做得很快，因此GPU在图形图像领域也有了大展拳脚的机会。下图表示的就是一个多GPU计算机硬件系统，可以看出，一个GPU内存就有很多个SP和各类内存，这些硬件都是GPU进行高效并行计算的基础。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122932879-1946399786.png"></p>
+<p>现在再从数据处理的角度来对比CPU和GPU的特点。CPU需要很强的通用性来处理各种不同的数据类型，比如整型、浮点数等，同时它又必须擅长处理逻辑判断所导致的大量分支跳转和中断处理，所以CPU其实就是一个能力很强的伙计，他能把很多事处理得妥妥当当，当然啦我们需要给他很多资源供他使用（各种硬件），这也导致了CPU不可能有太多核心（核心总数不超过16）。而GPU面对的则是类型高度统一的、相互无依赖的大规模数据和不需要被打断的纯净的计算环境，GPU有非常多核心（费米架构就有512核），虽然其核心的能力远没有CPU的核心强，但是胜在多，<br>在处理简单计算任务时呈现出“人多力量大”的优势，这就是并行计算的魅力。</p>
+<p>整理一下两者特点就是：</p>
+<ul>
+<li>CPU：擅长流程控制和逻辑处理，不规则数据结构，不可预测存储结构，单线程程序，分支密集型算法</li>
+<li>GPU：擅长数据并行计算，规则数据结构，可预测存储模式</li>
+</ul>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919122947035-1099878851.png"></p>
+<p>现在的计算机体系架构中，要完成CUDA并行计算，单靠GPU一人之力是不能完成计算任务的，必须借助CPU来协同配合完成一次高性能的并行计算任务。</p>
+<p>一般而言，并行部分在GPU上运行，串行部分在CPU运行，这就是异构计算。具体一点，异构计算的意思就是不同体系结构的处理器相互协作完成计算任务。CPU负责总体的程序流程，而GPU负责具体的计算任务，当GPU各个线程完成计算任务后，我们就将GPU那边计算得到的结果拷贝到CPU端，完成一次计算任务。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123003250-1159089426.png"></p>
+<p>所以应用程序利用GPU实现加速的总体分工就是：密集计算代码（约占5%的代码量）由GPU负责完成，剩余串行代码由CPU负责执行。</p>
+<h2 id="2-CUDA线程模型"><a href="#2-CUDA线程模型" class="headerlink" title="2. CUDA线程模型"></a>2. CUDA线程模型</h2><p>下面我们介绍CUDA的线程组织结构。首先我们都知道，线程是程序执行的最基本单元，CUDA的并行计算就是通过成千上万个线程的并行执行来实现的。下面的机构图说明了GPU的不同层次的结构。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123018799-1605248744.png"></p>
+<p>CUDA的线程模型从小往大来总结就是：</p>
+<ol>
+<li>Thread：线程，并行的基本单位</li>
+<li>Thread Block：线程块，互相合作的线程组，线程块有如下几个特点：</li>
+</ol>
+<ul>
+<li>允许彼此同步</li>
+<li>可以通过共享内存快速交换数据</li>
+<li>以1维、2维或3维组织</li>
+</ul>
+<ol start="3">
+<li>Grid：一组线程块</li>
+</ol>
+<ul>
+<li>以1维、2维组织</li>
+<li>共享全局内存</li>
+</ul>
+<p>Kernel：在GPU上执行的核心程序，这个kernel函数是运行在某个Grid上的。</p>
+<ul>
+<li>One kernel &lt;-&gt; One Grid</li>
+</ul>
+<p>每一个block和每个thread都有自己的ID，我们通过相应的索引找到相应的线程和线程块。</p>
+<ul>
+<li>threadIdx，blockIdx</li>
+<li>Block ID: 1D or 2D</li>
+<li>Thread ID: 1D, 2D or 3D</li>
+</ul>
+<p>理解kernel，必须要对kernel的线程层次结构有一个清晰的认识。首先GPU上很多并行化的轻量级线程。kernel在device上执行时实际上是启动很多线程，一个kernel所启动的所有线程称为一个网格（grid），同一个网格上的线程共享相同的全局内存空间，grid是线程结构的第一层次，而网格又可以分为很多线程块（block），一个线程块里面包含很多线程，这是第二个层次。线程两层组织结构如上图所示，这是一个gird和block均为2-dim的线程组织。grid和block都是定义为dim3类型的变量，dim3可以看成是包含三个无符号整数（x，y，z）成员的结构体变量，在定义时，缺省值初始化为1。因此grid和block可以灵活地定义为1-dim，2-dim以及3-dim结构，kernel调用时也必须通过执行配置&lt;&lt;&lt;grid, block&gt;&gt;&gt;来指定kernel所使用的网格维度和线程块维度。举个例子，我们以上图为例，分析怎么通过&lt;&lt;&lt;grid,block&gt;&gt;&gt;&gt;这种标记方式索引到我们想要的那个线程。CUDA的这种&lt;&lt;&lt;grid,block&gt;&gt;&gt;其实就是一个多级索引的方法，第一级索引是(grid.xIdx, grid.yIdy)，对应上图例子就是(1, 1)，通过它我们就能找到了这个线程块的位置，然后我们启动二级索引(block.xIdx, block.yIdx, block.zIdx)来定位到指定的线程。这就是我们CUDA的线程组织结构。</p>
+<p>这里想谈谈SP和SM（流处理器），很多人会被这两个专业名词搞得晕头转向。</p>
+<ul>
+<li>SP：最基本的处理单元，streaming processor，也称为CUDA core。最后具体的指令和任务都是在SP上处理的。GPU进行并行计算，也就是很多个SP同时做处理。</li>
+<li>SM：多个SP加上其他的一些资源组成一个streaming multiprocessor。也叫GPU大核，其他资源如：warp scheduler，register，shared memory等。SM可以看做GPU的心脏（对比CPU核心），register和shared memory是SM的稀缺资源。CUDA将这些资源分配给所有驻留在SM中的threads。因此，这些有限的资源就使每个SM中active warps有非常严格的限制，也就限制了并行能力。</li>
+</ul>
+<p>需要指出，每个SM包含的SP数量依据GPU架构而不同，Fermi架构GF100是32个，GF10X是48个，Kepler架构都是192个，Maxwell都是128个。</p>
+<p>简而言之，SP是线程执行的硬件单位，SM中包含多个SP，一个GPU可以有多个SM（比如16个），最终一个GPU可能包含有上千个SP。这么多核心“同时运行”，速度可想而知，这个引号只是想表明实际上，软件逻辑上是所有SP是并行的，但是物理上并不是所有SP都能同时执行计算（比如我们只有8个SM却有1024个线程块需要调度处理），因为有些会处于挂起，就绪等其他状态，这有关GPU的线程调度。</p>
+<p>下面这个图将从硬件角度和软件角度解释CUDA的线程模型。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123034967-1110899742.png"></p>
+<ul>
+<li>每个线程由每个线程处理器（SP）执行</li>
+<li>线程块由多核处理器（SM）执行</li>
+<li>一个kernel其实由一个grid来执行，一个kernel一次只能在一个GPU上执行</li>
+</ul>
+<p>block是软件概念，一个block只会由一个sm调度，程序员在开发时，通过设定block的属性，告诉GPU硬件，我有多少个线程，线程怎么组织。而具体怎么调度由sm的warps scheduler负责，block一旦被分配好SM，该block就会一直驻留在该SM中，直到执行结束。一个SM可以同时拥有多个blocks，但需要序列执行。下图显示了GPU内部的硬件架构：</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123048002-1383369419.png"></p>
+<h2 id="3-CUDA内存模型"><a href="#3-CUDA内存模型" class="headerlink" title="3. CUDA内存模型"></a>3. CUDA内存模型</h2><p>CUDA中的内存模型分为以下几个层次：</p>
+<ul>
+<li>每个线程都用自己的registers（寄存器）</li>
+<li>每个线程都有自己的local memory（局部内存）</li>
+<li>每个线程块内都有自己的shared memory（共享内存），所有线程块内的所有线程共享这段内存资源</li>
+<li>每个grid都有自己的global memory（全局内存），不同线程块的线程都可使用</li>
+<li>每个grid都有自己的constant memory（常量内存）和texture memory（纹理内存），），不同线程块的线程都可使用</li>
+</ul>
+<p>线程访问这几类存储器的速度是register &gt; local memory &gt;shared memory &gt; global memory</p>
+<p>下面这幅图表示就是这些内存在计算机架构中的所在层次。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123101933-1651940595.png"></p>
+<h2 id="4-CUDA编程模型"><a href="#4-CUDA编程模型" class="headerlink" title="4. CUDA编程模型"></a>4. CUDA编程模型</h2><p>上面讲了这么多硬件相关的知识点，现在终于可以开始说说CUDA是怎么写程序的了。</p>
+<p>我们先捋一捋常见的CUDA术语：</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123113524-1183131017.png"></p>
+<p>第一个要掌握的编程要点：我们怎么写一个能在GPU跑的程序或函数呢？</p>
+<p>通过关键字就可以表示某个程序在CPU上跑还是在GPU上跑！如下表所示，比如我们用__global__定义一个kernel函数，就是CPU上调用，GPU上执行，注意__global__函数的返回值必须设置为void。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123125957-1702896390.png"></p>
+<p>第二个编程要点：CPU和GPU间的数据传输怎么写？</p>
+<p>首先介绍在GPU内存分配回收内存的函数接口：</p>
+<ul>
+<li>cudaMalloc(): 在设备端分配global memory</li>
+<li>cudaFree(): 释放存储空间</li>
+</ul>
+<p>CPU的数据和GPU端数据做数据传输的函数接口是一样的，他们通过传递的函数实参（枚举类型）来表示传输方向：</p>
+<p>cudaMemcpy(void *dst, void *src, size_t nbytes,<br>enum cudaMemcpyKind direction)</p>
+<p>enum cudaMemcpyKind:</p>
+<ul>
+<li>cudaMemcpyHostToDevice（CPU到GPU）</li>
+<li>cudaMemcpyDeviceToHost（GPU到CPU）</li>
+<li>cudaMemcpyDeviceToDevice（GPU到GPU）</li>
+</ul>
+<p>第三个编程要点是：怎么用代码表示线程组织模型？<br>我们可以用dim3类来表示网格和线程块的组织方式，网格grid可以表示为一维和二维格式，线程块block可以表示为一维、二维和三维的数据格式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dim3 DimGrid(100, 50);  &#x2F;&#x2F;5000个线程块，维度是100*50</span><br><span class="line">dim3 DimBlock(4, 8, 8);  &#x2F;&#x2F;每个线层块内包含256个线程，线程块内的维度是4*8*8</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>接下来介绍一个非常重要又很难懂的一个知识点，我们怎么计算线程号呢？</p>
+<h3 id="1-使用N个线程块，每一个线程块只有一个线程，即"><a href="#1-使用N个线程块，每一个线程块只有一个线程，即" class="headerlink" title="1.使用N个线程块，每一个线程块只有一个线程，即"></a>1.使用N个线程块，每一个线程块只有一个线程，即</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dim3 dimGrid(N);</span><br><span class="line">dim3 dimBlock(1);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>此时的线程号的计算方式就是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">threadId &#x3D; blockIdx.x;</span><br></pre></td></tr></table></figure>
+<p>其中threadId的取值范围为0到N-1。对于这种情况，我们可以将其看作是一个列向量，列向量中的每一行对应一个线程块。列向量中每一行只有1个元素，对应一个线程。</p>
+<h3 id="2-使用M×N个线程块，每个线程块1个线程"><a href="#2-使用M×N个线程块，每个线程块1个线程" class="headerlink" title="2.使用M×N个线程块，每个线程块1个线程"></a>2.使用M×N个线程块，每个线程块1个线程</h3><p>由于线程块是2维的，故可以看做是一个M*N的2维矩阵，其线程号有两个维度，即：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dim3 dimGrid(M,N);</span><br><span class="line">dim3 dimBlock(1);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>其中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">blockIdx.x 取值0到M-1</span><br><span class="line">blcokIdx.y 取值0到N-1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这种情况一般用于处理2维数据结构，比如2维图像。每一个像素用一个线程来处理，此时需要线程号来映射图像像素的对应位置，如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pos &#x3D; blockIdx.y * blcokDim.x + blockIdx.x; &#x2F;&#x2F;其中gridDim.x等于M</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-使用一个线程块，该线程具有N个线程，即"><a href="#3-使用一个线程块，该线程具有N个线程，即" class="headerlink" title="3.使用一个线程块，该线程具有N个线程，即"></a>3.使用一个线程块，该线程具有N个线程，即</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dim3 dimGrid(1);</span><br><span class="line">dim3 dimBlock(N);</span><br></pre></td></tr></table></figure>
+<p>此时线程号的计算方式为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">threadId &#x3D; threadIdx.x;</span><br></pre></td></tr></table></figure>
+<p>其中threadId的范围是0到N-1，对于这种情况，可以看做是一个行向量，行向量中的每一个元素的每一个元素对应着一个线程。</p>
+<h3 id="4-使用M个线程块，每个线程块内含有N个线程，即"><a href="#4-使用M个线程块，每个线程块内含有N个线程，即" class="headerlink" title="4.使用M个线程块，每个线程块内含有N个线程，即"></a>4.使用M个线程块，每个线程块内含有N个线程，即</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dim3 dimGrid(M);</span><br><span class="line">dim3 dimBlock(N);</span><br></pre></td></tr></table></figure>
+<p>这种情况，可以把它想象成二维矩阵，矩阵的行与线程块对应，矩阵的列与线程编号对应，那线程号的计算方式为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">threadId &#x3D; threadIdx.x + blcokIdx*blockDim.x;</span><br></pre></td></tr></table></figure>
+<p>上面其实就是把二维的索引空间转换为一维索引空间的过程。</p>
+<h3 id="5-使用M×N的二维线程块，每一个线程块具有P×Q个线程，即"><a href="#5-使用M×N的二维线程块，每一个线程块具有P×Q个线程，即" class="headerlink" title="5.使用M×N的二维线程块，每一个线程块具有P×Q个线程，即"></a>5.使用M×N的二维线程块，每一个线程块具有P×Q个线程，即</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dim3 dimGrid(M, N);</span><br><span class="line">dim3 dimBlock(P, Q);</span><br></pre></td></tr></table></figure>
+<p>这种情况其实是我们遇到的最多情况，特别适用于处理具有二维数据结构的算法，比如图像处理领域。</p>
+<p>其索引有两个维度</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">threadId.x &#x3D; blockIdx.x*blockDim.x+threadIdx.x;</span><br><span class="line">threadId.y &#x3D; blockIdx.y*blockDim.y+threadIdx.y;</span><br></pre></td></tr></table></figure>
+<p>上述公式就是把线程和线程块的索引映射为图像像素坐标的计算方法。</p>
+<h2 id="CUDA应用例子"><a href="#CUDA应用例子" class="headerlink" title="CUDA应用例子"></a>CUDA应用例子</h2><p>我们已经掌握了CUDA编程的基本语法，现在我们开始以一些小例子来真正上手CUDA。</p>
+<p>首先我们编写一个程序，查看我们GPU的一些硬件配置情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;device_launch_parameters.h&quot;</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    int deviceCount;</span><br><span class="line">    cudaGetDeviceCount(&amp;deviceCount);</span><br><span class="line">    for(int i&#x3D;0;i&lt;deviceCount;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        cudaDeviceProp devProp;</span><br><span class="line">        cudaGetDeviceProperties(&amp;devProp, i);</span><br><span class="line">        std::cout &lt;&lt; &quot;使用GPU device &quot; &lt;&lt; i &lt;&lt; &quot;: &quot; &lt;&lt; devProp.name &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;设备全局内存总量： &quot; &lt;&lt; devProp.totalGlobalMem &#x2F; 1024 &#x2F; 1024 &lt;&lt; &quot;MB&quot; &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;SM的数量：&quot; &lt;&lt; devProp.multiProcessorCount &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;每个线程块的共享内存大小：&quot; &lt;&lt; devProp.sharedMemPerBlock &#x2F; 1024.0 &lt;&lt; &quot; KB&quot; &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;每个线程块的最大线程数：&quot; &lt;&lt; devProp.maxThreadsPerBlock &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;设备上一个线程块（Block）种可用的32位寄存器数量： &quot; &lt;&lt; devProp.regsPerBlock &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;每个EM的最大线程数：&quot; &lt;&lt; devProp.maxThreadsPerMultiProcessor &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;每个EM的最大线程束数：&quot; &lt;&lt; devProp.maxThreadsPerMultiProcessor &#x2F; 32 &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;设备上多处理器的数量： &quot; &lt;&lt; devProp.multiProcessorCount &lt;&lt; std::endl;</span><br><span class="line">        std::cout &lt;&lt; &quot;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&quot; &lt;&lt; std::endl;     </span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>我们利用nvcc来编译程序。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvcc test1.cu -o test1</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：因为我的服务器是8个TITAN GPU，为了省略重复信息，下面只显示两个GPU结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">使用GPU device 0: TITAN X (Pascal)</span><br><span class="line">设备全局内存总量： 12189MB</span><br><span class="line">SM的数量：28</span><br><span class="line">每个线程块的共享内存大小：48 KB</span><br><span class="line">每个线程块的最大线程数：1024</span><br><span class="line">设备上一个线程块（Block）种可用的32位寄存器数量： 65536</span><br><span class="line">每个EM的最大线程数：2048</span><br><span class="line">每个EM的最大线程束数：64</span><br><span class="line">设备上多处理器的数量： 28</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">使用GPU device 1: TITAN X (Pascal)</span><br><span class="line">设备全局内存总量： 12189MB</span><br><span class="line">SM的数量：28</span><br><span class="line">每个线程块的共享内存大小：48 KB</span><br><span class="line">每个线程块的最大线程数：1024</span><br><span class="line">设备上一个线程块（Block）种可用的32位寄存器数量： 65536</span><br><span class="line">每个EM的最大线程数：2048</span><br><span class="line">每个EM的最大线程束数：64</span><br><span class="line">设备上多处理器的数量： 28</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line"></span><br><span class="line">.......</span><br></pre></td></tr></table></figure>
+
+<p>第一个计算任务：将两个元素数目为1024×1024的float数组相加。</p>
+<p>首先我们思考一下如果只用CPU我们怎么串行完成这个任务。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123147745-348682595.png"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;sys&#x2F;time.h&gt;</span><br><span class="line">#include &lt;math.h&gt;</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    struct timeval start, end;</span><br><span class="line">    gettimeofday( &amp;start, NULL );</span><br><span class="line">    float*A, *B, *C;</span><br><span class="line">    int n &#x3D; 1024 * 1024;</span><br><span class="line">    int size &#x3D; n * sizeof(float);</span><br><span class="line">    A &#x3D; (float*)malloc(size);</span><br><span class="line">    B &#x3D; (float*)malloc(size);</span><br><span class="line">    C &#x3D; (float*)malloc(size);</span><br><span class="line"></span><br><span class="line">    for(int i&#x3D;0;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        A[i] &#x3D; 90.0;</span><br><span class="line">        B[i] &#x3D; 10.0;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    for(int i&#x3D;0;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        C[i] &#x3D; A[i] + B[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    float max_error &#x3D; 0.0;</span><br><span class="line">    for(int i&#x3D;0;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        max_error +&#x3D; fabs(100.0-C[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; &quot;max_error is &quot; &lt;&lt; max_error &lt;&lt; endl;</span><br><span class="line">    gettimeofday( &amp;end, NULL );</span><br><span class="line">    int timeuse &#x3D; 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;</span><br><span class="line">    cout &lt;&lt; &quot;total time is &quot; &lt;&lt; timeuse&#x2F;1000 &lt;&lt; &quot;ms&quot; &lt;&lt;endl;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>CPU方式输出结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">max_error is 0</span><br><span class="line">total time is 22ms</span><br></pre></td></tr></table></figure>
+
+<p>如果我们使用GPU来做并行计算，速度将会如何呢？</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123203820-1388097134.png"></p>
+<p>编程要点：</p>
+<ol>
+<li>每个Block中的Thread数最大不超过512；</li>
+<li>为了充分利用SM，Block数尽可能多，&gt;100。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;cuda_runtime.h&quot;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;sys&#x2F;time.h&gt;</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">__global__ void Plus(float A[], float B[], float C[], int n)</span><br><span class="line">&#123;</span><br><span class="line">    int i &#x3D; blockDim.x * blockIdx.x + threadIdx.x;</span><br><span class="line">    C[i] &#x3D; A[i] + B[i];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    struct timeval start, end;</span><br><span class="line">    gettimeofday( &amp;start, NULL );</span><br><span class="line">    float*A, *Ad, *B, *Bd, *C, *Cd;</span><br><span class="line">    int n &#x3D; 1024 * 1024;</span><br><span class="line">    int size &#x3D; n * sizeof(float);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; CPU端分配内存</span><br><span class="line">    A &#x3D; (float*)malloc(size);</span><br><span class="line">    B &#x3D; (float*)malloc(size);</span><br><span class="line">    C &#x3D; (float*)malloc(size);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 初始化数组</span><br><span class="line">    for(int i&#x3D;0;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        A[i] &#x3D; 90.0;</span><br><span class="line">        B[i] &#x3D; 10.0;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; GPU端分配内存</span><br><span class="line">    cudaMalloc((void**)&amp;Ad, size);</span><br><span class="line">    cudaMalloc((void**)&amp;Bd, size);</span><br><span class="line">    cudaMalloc((void**)&amp;Cd, size);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; CPU的数据拷贝到GPU端</span><br><span class="line">    cudaMemcpy(Ad, A, size, cudaMemcpyHostToDevice);</span><br><span class="line">    cudaMemcpy(Bd, B, size, cudaMemcpyHostToDevice);</span><br><span class="line">    cudaMemcpy(Bd, B, size, cudaMemcpyHostToDevice);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 定义kernel执行配置，（1024*1024&#x2F;512）个block，每个block里面有512个线程</span><br><span class="line">    dim3 dimBlock(512);</span><br><span class="line">    dim3 dimGrid(n&#x2F;512);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 执行kernel</span><br><span class="line">    Plus&lt;&lt;&lt;dimGrid, dimBlock&gt;&gt;&gt;(Ad, Bd, Cd, n);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 将在GPU端计算好的结果拷贝回CPU端</span><br><span class="line">    cudaMemcpy(C, Cd, size, cudaMemcpyDeviceToHost);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 校验误差</span><br><span class="line">    float max_error &#x3D; 0.0;</span><br><span class="line">    for(int i&#x3D;0;i&lt;n;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        max_error +&#x3D; fabs(100.0 - C[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    cout &lt;&lt; &quot;max error is &quot; &lt;&lt; max_error &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 释放CPU端、GPU端的内存</span><br><span class="line">    free(A);</span><br><span class="line">    free(B);</span><br><span class="line">    free(C);</span><br><span class="line">    cudaFree(Ad);</span><br><span class="line">    cudaFree(Bd);</span><br><span class="line">    cudaFree(Cd);</span><br><span class="line">    gettimeofday( &amp;end, NULL );</span><br><span class="line">    int timeuse &#x3D; 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;</span><br><span class="line">    cout &lt;&lt; &quot;total time is &quot; &lt;&lt; timeuse&#x2F;1000 &lt;&lt; &quot;ms&quot; &lt;&lt;endl;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>GPU方式输出结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">max error is 0</span><br><span class="line">total time is 1278ms</span><br></pre></td></tr></table></figure>
+
+<p>由上面的例子看出，使用CUDA编程时我们看不到for循环了，因为CPU编程的循环已经被分散到各个thread上做了，所以我们也就看到不到for一类的语句。从结果上看，CPU的循环计算的速度比GPU计算快多了，原因就在于CUDA中有大量的内存拷贝操作（数据传输花费了大量时间，而计算时间却非常少），如果计算量比较小的话，CPU计算会更合适一些。</p>
+<p>下面计算一个稍微复杂的例子，矩阵加法，即对两个矩阵对应坐标的元素相加后的结果存储在第三个的对应位置的元素上。</p>
+<p>值得注意的是，这个计算任务我采用了二维数组的计算方式，注意一下二维数组在CUDA编程中的写法。</p>
+<p>CPU版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;sys&#x2F;time.h&gt;</span><br><span class="line">#include &lt;math.h&gt;</span><br><span class="line"></span><br><span class="line">#define ROWS 1024</span><br><span class="line">#define COLS 1024</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    struct timeval start, end;</span><br><span class="line">    gettimeofday( &amp;start, NULL );</span><br><span class="line">    int *A, **A_ptr, *B, **B_ptr, *C, **C_ptr;</span><br><span class="line">    int total_size &#x3D; ROWS*COLS*sizeof(int);</span><br><span class="line">    A &#x3D; (int*)malloc(total_size);</span><br><span class="line">    B &#x3D; (int*)malloc(total_size);</span><br><span class="line">    C &#x3D; (int*)malloc(total_size);</span><br><span class="line">    A_ptr &#x3D; (int**)malloc(ROWS*sizeof(int*));</span><br><span class="line">    B_ptr &#x3D; (int**)malloc(ROWS*sizeof(int*));</span><br><span class="line">    C_ptr &#x3D; (int**)malloc(ROWS*sizeof(int*));</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F;CPU一维数组初始化</span><br><span class="line">    for(int i&#x3D;0;i&lt;ROWS*COLS;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        A[i] &#x3D; 80;</span><br><span class="line">        B[i] &#x3D; 20;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    for(int i&#x3D;0;i&lt;ROWS;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        A_ptr[i] &#x3D; A + COLS*i;</span><br><span class="line">        B_ptr[i] &#x3D; B + COLS*i;</span><br><span class="line">        C_ptr[i] &#x3D; C + COLS*i;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    for(int i&#x3D;0;i&lt;ROWS;i++)</span><br><span class="line">        for(int j&#x3D;0;j&lt;COLS;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            C_ptr[i][j] &#x3D; A_ptr[i][j] + B_ptr[i][j];</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#x2F;&#x2F;检查结果</span><br><span class="line">    int max_error &#x3D; 0;</span><br><span class="line">    for(int i&#x3D;0;i&lt;ROWS*COLS;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F;cout &lt;&lt; C[i] &lt;&lt; endl;</span><br><span class="line">        max_error +&#x3D; abs(100-C[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    cout &lt;&lt; &quot;max_error is &quot; &lt;&lt; max_error &lt;&lt;endl;     </span><br><span class="line">    gettimeofday( &amp;end, NULL );</span><br><span class="line">    int timeuse &#x3D; 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;</span><br><span class="line">    cout &lt;&lt; &quot;total time is &quot; &lt;&lt; timeuse&#x2F;1000 &lt;&lt; &quot;ms&quot; &lt;&lt;endl;</span><br><span class="line">    </span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>CPU方式输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">max_error is 0</span><br><span class="line">total time is 29ms</span><br></pre></td></tr></table></figure>
+
+<p>GPU版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;cuda_runtime.h&quot;</span><br><span class="line">#include &quot;device_launch_parameters.h&quot;</span><br><span class="line">#include &lt;sys&#x2F;time.h&gt; </span><br><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;math.h&gt;</span><br><span class="line">#define Row  1024</span><br><span class="line">#define Col 1024</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">__global__ void addKernel(int **C,  int **A, int ** B)</span><br><span class="line">&#123;</span><br><span class="line">    int idx &#x3D; threadIdx.x + blockDim.x * blockIdx.x;</span><br><span class="line">    int idy &#x3D; threadIdx.y + blockDim.y * blockIdx.y;</span><br><span class="line">    if (idx &lt; Col &amp;&amp; idy &lt; Row) &#123;</span><br><span class="line">        C[idy][idx] &#x3D; A[idy][idx] + B[idy][idx];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    struct timeval start, end;</span><br><span class="line">    gettimeofday( &amp;start, NULL );</span><br><span class="line"></span><br><span class="line">    int **A &#x3D; (int **)malloc(sizeof(int*) * Row);</span><br><span class="line">    int **B &#x3D; (int **)malloc(sizeof(int*) * Row);</span><br><span class="line">    int **C &#x3D; (int **)malloc(sizeof(int*) * Row);</span><br><span class="line">    int *dataA &#x3D; (int *)malloc(sizeof(int) * Row * Col);</span><br><span class="line">    int *dataB &#x3D; (int *)malloc(sizeof(int) * Row * Col);</span><br><span class="line">    int *dataC &#x3D; (int *)malloc(sizeof(int) * Row * Col);</span><br><span class="line">    int **d_A;</span><br><span class="line">    int **d_B;</span><br><span class="line">    int **d_C;</span><br><span class="line">    int *d_dataA;</span><br><span class="line">    int *d_dataB;</span><br><span class="line">    int *d_dataC;</span><br><span class="line">    &#x2F;&#x2F;malloc device memory</span><br><span class="line">    cudaMalloc((void**)&amp;d_A, sizeof(int **) * Row);</span><br><span class="line">    cudaMalloc((void**)&amp;d_B, sizeof(int **) * Row);</span><br><span class="line">    cudaMalloc((void**)&amp;d_C, sizeof(int **) * Row);</span><br><span class="line">    cudaMalloc((void**)&amp;d_dataA, sizeof(int) *Row*Col);</span><br><span class="line">    cudaMalloc((void**)&amp;d_dataB, sizeof(int) *Row*Col);</span><br><span class="line">    cudaMalloc((void**)&amp;d_dataC, sizeof(int) *Row*Col);</span><br><span class="line">    &#x2F;&#x2F;set value</span><br><span class="line">    for (int i &#x3D; 0; i &lt; Row*Col; i++) &#123;</span><br><span class="line">        dataA[i] &#x3D; 90;</span><br><span class="line">        dataB[i] &#x3D; 10;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;将主机指针A指向设备数据位置，目的是让设备二级指针能够指向设备数据一级指针</span><br><span class="line">    &#x2F;&#x2F;A 和  dataA 都传到了设备上，但是二者还没有建立对应关系</span><br><span class="line">    for (int i &#x3D; 0; i &lt; Row; i++) &#123;</span><br><span class="line">        A[i] &#x3D; d_dataA + Col * i;</span><br><span class="line">        B[i] &#x3D; d_dataB + Col * i;</span><br><span class="line">        C[i] &#x3D; d_dataC + Col * i;</span><br><span class="line">    &#125;</span><br><span class="line">                                                                </span><br><span class="line">    cudaMemcpy(d_A, A, sizeof(int*) * Row, cudaMemcpyHostToDevice);</span><br><span class="line">    cudaMemcpy(d_B, B, sizeof(int*) * Row, cudaMemcpyHostToDevice);</span><br><span class="line">    cudaMemcpy(d_C, C, sizeof(int*) * Row, cudaMemcpyHostToDevice);</span><br><span class="line">    cudaMemcpy(d_dataA, dataA, sizeof(int) * Row * Col, cudaMemcpyHostToDevice);</span><br><span class="line">    cudaMemcpy(d_dataB, dataB, sizeof(int) * Row * Col, cudaMemcpyHostToDevice);</span><br><span class="line">    dim3 threadPerBlock(16, 16);</span><br><span class="line">    dim3 blockNumber( (Col + threadPerBlock.x - 1)&#x2F; threadPerBlock.x, (Row + threadPerBlock.y - 1) &#x2F; threadPerBlock.y );</span><br><span class="line">    printf(&quot;Block(%d,%d)   Grid(%d,%d).\n&quot;, threadPerBlock.x, threadPerBlock.y, blockNumber.x, blockNumber.y);</span><br><span class="line">    addKernel &lt;&lt; &lt;blockNumber, threadPerBlock &gt;&gt; &gt; (d_C, d_A, d_B);</span><br><span class="line">    &#x2F;&#x2F;拷贝计算数据-一级数据指针</span><br><span class="line">    cudaMemcpy(dataC, d_dataC, sizeof(int) * Row * Col, cudaMemcpyDeviceToHost);</span><br><span class="line">                                                                                             </span><br><span class="line">    int max_error &#x3D; 0;</span><br><span class="line">    for(int i&#x3D;0;i&lt;Row*Col;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F;printf(&quot;%d\n&quot;, dataC[i]);</span><br><span class="line">        max_error +&#x3D; abs(100-dataC[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;释放内存</span><br><span class="line">    free(A);</span><br><span class="line">    free(B);</span><br><span class="line">    free(C);</span><br><span class="line">    free(dataA);</span><br><span class="line">    free(dataB);</span><br><span class="line">    free(dataC);</span><br><span class="line">    cudaFree(d_A);</span><br><span class="line">    cudaFree(d_B);</span><br><span class="line">    cudaFree(d_C);</span><br><span class="line">    cudaFree(d_dataA);</span><br><span class="line">    cudaFree(d_dataB);</span><br><span class="line">    cudaFree(d_dataC);</span><br><span class="line"></span><br><span class="line">    printf(&quot;max_error is %d\n&quot;, max_error);</span><br><span class="line">    gettimeofday( &amp;end, NULL );</span><br><span class="line">    int timeuse &#x3D; 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;</span><br><span class="line">    printf(&quot;total time is %d ms\n&quot;, timeuse&#x2F;1000);</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>GPU输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Block(16,16)   Grid(64,64).</span><br><span class="line">max_error is 0</span><br><span class="line">total time is 442 ms</span><br></pre></td></tr></table></figure>
+
+<p>从结果看出，CPU计算时间还是比GPU的计算时间短。这里需要指出的是，这种二维数组的程序写法的效率并不高（虽然比较符合我们的思维方式），因为我们做了两次访存操作。所以一般而言，做高性能计算一般不会采取这种编程方式。</p>
+<p>最后一个例子我们将计算一个更加复杂的任务，矩阵乘法</p>
+<p>回顾一下矩阵乘法：两矩阵相乘，左矩阵第一行乘以右矩阵第一列（分别相乘，第一个数乘第一个数），乘完之后相加，即为结果的第一行第一列的数，依次往下算，直到计算完所有矩阵元素。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123226548-463149583.jpg"></p>
+<p>CPU版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;sys&#x2F;time.h&gt;</span><br><span class="line"></span><br><span class="line">#define ROWS 1024</span><br><span class="line">#define COLS 1024</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">void matrix_mul_cpu(float* M, float* N, float* P, int width)</span><br><span class="line">&#123;</span><br><span class="line">    for(int i&#x3D;0;i&lt;width;i++)</span><br><span class="line">        for(int j&#x3D;0;j&lt;width;j++)</span><br><span class="line">        &#123;</span><br><span class="line">            float sum &#x3D; 0.0;</span><br><span class="line">            for(int k&#x3D;0;k&lt;width;k++)</span><br><span class="line">            &#123;</span><br><span class="line">                float a &#x3D; M[i*width+k];</span><br><span class="line">                float b &#x3D; N[k*width+j];</span><br><span class="line">                sum +&#x3D; a*b;</span><br><span class="line">            &#125;</span><br><span class="line">            P[i*width+j] &#x3D; sum;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    struct timeval start, end;</span><br><span class="line">    gettimeofday( &amp;start, NULL );</span><br><span class="line">    float *A, *B, *C;</span><br><span class="line">    int total_size &#x3D; ROWS*COLS*sizeof(float);</span><br><span class="line">    A &#x3D; (float*)malloc(total_size);</span><br><span class="line">    B &#x3D; (float*)malloc(total_size);</span><br><span class="line">    C &#x3D; (float*)malloc(total_size);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;CPU一维数组初始化</span><br><span class="line">    for(int i&#x3D;0;i&lt;ROWS*COLS;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        A[i] &#x3D; 80.0;</span><br><span class="line">        B[i] &#x3D; 20.0;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    matrix_mul_cpu(A, B, C, COLS);</span><br><span class="line"></span><br><span class="line">    gettimeofday( &amp;end, NULL );</span><br><span class="line">    int timeuse &#x3D; 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;</span><br><span class="line">    cout &lt;&lt; &quot;total time is &quot; &lt;&lt; timeuse&#x2F;1000 &lt;&lt; &quot;ms&quot; &lt;&lt;endl;</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>CPU输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">total time is 7617ms</span><br></pre></td></tr></table></figure>
+
+<p>梳理一下CUDA求解矩阵乘法的思路：因为C=A×B，我们利用每个线程求解C矩阵每个(x, y)的元素，每个线程载入A的一行和B的一列，遍历各自行列元素，对A、B对应的元素做一次乘法和一次加法。</p>
+<p><img src="/2018/09/19/CUDA%E7%BC%96%E7%A8%8B%E4%B9%8B%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1093303-20180919123238277-429965808.png"></p>
+<p>GPU版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;cuda_runtime.h&quot;</span><br><span class="line">#include &quot;device_launch_parameters.h&quot;</span><br><span class="line">#include &lt;sys&#x2F;time.h&gt; </span><br><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;math.h&gt;</span><br><span class="line">#define Row  1024</span><br><span class="line">#define Col 1024</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">__global__ void matrix_mul_gpu(int *M, int* N, int* P, int width)</span><br><span class="line">&#123;</span><br><span class="line">    int i &#x3D; threadIdx.x + blockDim.x * blockIdx.x;</span><br><span class="line">    int j &#x3D; threadIdx.y + blockDim.y * blockIdx.y;</span><br><span class="line">                </span><br><span class="line">    int sum &#x3D; 0;</span><br><span class="line">    for(int k&#x3D;0;k&lt;width;k++)</span><br><span class="line">    &#123;</span><br><span class="line">        int a &#x3D; M[j*width+k];</span><br><span class="line">        int b &#x3D; N[k*width+i];</span><br><span class="line">        sum +&#x3D; a*b;</span><br><span class="line">    &#125;</span><br><span class="line">    P[j*width+i] &#x3D; sum;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    struct timeval start, end;</span><br><span class="line">    gettimeofday( &amp;start, NULL );</span><br><span class="line"></span><br><span class="line">    int *A &#x3D; (int *)malloc(sizeof(int) * Row * Col);</span><br><span class="line">    int *B &#x3D; (int *)malloc(sizeof(int) * Row * Col);</span><br><span class="line">    int *C &#x3D; (int *)malloc(sizeof(int) * Row * Col);</span><br><span class="line">    &#x2F;&#x2F;malloc device memory</span><br><span class="line">    int *d_dataA, *d_dataB, *d_dataC;</span><br><span class="line">    cudaMalloc((void**)&amp;d_dataA, sizeof(int) *Row*Col);</span><br><span class="line">    cudaMalloc((void**)&amp;d_dataB, sizeof(int) *Row*Col);</span><br><span class="line">    cudaMalloc((void**)&amp;d_dataC, sizeof(int) *Row*Col);</span><br><span class="line">    &#x2F;&#x2F;set value</span><br><span class="line">    for (int i &#x3D; 0; i &lt; Row*Col; i++) &#123;</span><br><span class="line">        A[i] &#x3D; 90;</span><br><span class="line">        B[i] &#x3D; 10;</span><br><span class="line">    &#125;</span><br><span class="line">                                                                </span><br><span class="line">    cudaMemcpy(d_dataA, A, sizeof(int) * Row * Col, cudaMemcpyHostToDevice);</span><br><span class="line">    cudaMemcpy(d_dataB, B, sizeof(int) * Row * Col, cudaMemcpyHostToDevice);</span><br><span class="line">    dim3 threadPerBlock(16, 16);</span><br><span class="line">    dim3 blockNumber((Col+threadPerBlock.x-1)&#x2F; threadPerBlock.x, (Row+threadPerBlock.y-1)&#x2F; threadPerBlock.y );</span><br><span class="line">    printf(&quot;Block(%d,%d)   Grid(%d,%d).\n&quot;, threadPerBlock.x, threadPerBlock.y, blockNumber.x, blockNumber.y);</span><br><span class="line">    matrix_mul_gpu &lt;&lt; &lt;blockNumber, threadPerBlock &gt;&gt; &gt; (d_dataA, d_dataB, d_dataC, Col);</span><br><span class="line">    &#x2F;&#x2F;拷贝计算数据-一级数据指针</span><br><span class="line">    cudaMemcpy(C, d_dataC, sizeof(int) * Row * Col, cudaMemcpyDeviceToHost);</span><br><span class="line">                                                                                             </span><br><span class="line">    &#x2F;&#x2F;释放内存</span><br><span class="line">    free(A);</span><br><span class="line">    free(B);</span><br><span class="line">    free(C);</span><br><span class="line">    cudaFree(d_dataA);</span><br><span class="line">    cudaFree(d_dataB);</span><br><span class="line">    cudaFree(d_dataC);</span><br><span class="line"></span><br><span class="line">    gettimeofday( &amp;end, NULL );</span><br><span class="line">    int timeuse &#x3D; 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;</span><br><span class="line">    printf(&quot;total time is %d ms\n&quot;, timeuse&#x2F;1000);</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>GPU输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Block(16,16)   Grid(64,64).</span><br><span class="line">total time is 506 ms</span><br></pre></td></tr></table></figure>
+<p>从这个矩阵乘法任务可以看出，我们通过GPU进行并行计算的方式仅花费了0.5秒，但是CPU串行计算方式却花费了7.6秒，计算速度提升了十多倍，可见并行计算的威力！</p>
+
+        </div>
+    
+<!-- tags -->
+
+    <div class="post-meta">
+        标签：
+        
+            <a href="/tags/%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97/"> / 并行计算</a>
+        
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © <script>document.write(new Date().getFullYear())</script> Hexo</span>
+    <span>Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> with <a target="_blank" rel="noopener" href="https:///imzl.com/zenmind">ZenMind</a></span>
+</div>
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>
